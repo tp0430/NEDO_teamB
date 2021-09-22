@@ -1,4 +1,4 @@
-#coding: UTF-8
+# coding: UTF-8
 """
     * File name: test_hit_and_blow.py
     * Description: hit_and_blow.pyのmain関数をテストする
@@ -7,6 +7,7 @@
 """
 
 from hit_and_blow.hit_and_blow import main
+
 
 def test_main():
     assert 1 == 1

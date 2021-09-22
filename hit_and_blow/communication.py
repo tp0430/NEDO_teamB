@@ -1,4 +1,4 @@
-#coding: UTF-8
+# coding: UTF-8
 """
     * File name: communication.py
     * Description: APIを使った通信用のモジュール

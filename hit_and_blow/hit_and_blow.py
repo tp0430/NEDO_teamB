@@ -1,4 +1,4 @@
-#coding: UTF-8
+# coding: UTF-8
 """
     * File name: hit_and_blow.py
     * Description: hit and blowのmainモジュール
@@ -8,8 +8,10 @@
 
 from display import display_test
 
+
 def main():
     display_test()
+
 
 if __name__ == "__main__":
     main()
