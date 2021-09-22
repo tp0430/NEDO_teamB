@@ -25,5 +25,5 @@ pipenv shell
 終了するときは`Ctrl+C`で終了する。  
 
 ```sh
-streamlit run hit_and_blow.py
+streamlit run hit_and_blow\hit_and_blow.py
 ```
