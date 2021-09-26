@@ -27,3 +27,14 @@ pipenv shell
 ```sh
 streamlit run hit_and_blow\hit_and_blow.py
 ```
+
+## ライブラリを追加したいとき
+
+`Pipfile`及び`requirments.txt`にライブラリのバージョンを記載。
+GitHubはLinuxで動いているため、`pywin`というライブラリはwindows環境のみで使うように`requirements.txt`に記述しています。極力
+
+```sh
+pip freeze > requirements.txt
+```
+
+のコマンドは使わないように。
