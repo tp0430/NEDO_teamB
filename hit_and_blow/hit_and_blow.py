@@ -6,7 +6,7 @@
     * Created by: KENTA Mizuhara
 """
 
-from .display import display_test
+from display import display_test
 
 
 def main():
