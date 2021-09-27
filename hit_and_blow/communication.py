@@ -4,4 +4,58 @@
     * Description: APIを使った通信用のモジュール
     * Created on: September 22
     * Created by: KENTA Mizuhara
+    ---作りこむこと---
+    1.room_idが入力された場合とそうでない場合の分岐
+    2.APIからのstatus_codeが200でないときの例外処理
 """
+import requests
+
+class APICom:
+    """通信用モジュール
+
+    :param str player_id: プレーヤーID
+    :param str player_name: プレーヤー名
+    :param int room_id: ルームID
+    """
+
+    def __init__(self, player_id, player_name, room_id):
+        pass
+
+    def get_rooms(self):
+        """全ての対戦部屋の情報を取得する.
+        :return:
+        """
+        pass
+
+    def enter_room(self):
+        """対戦部屋を作成し、指定したユーザを登録する。
+        待機中の状態の対戦部屋が存在する場合は、指定したユーザを該当の対戦部屋のプレイヤーとして登録する。
+        selfにルームIDを指定した場合は、該当のルームIDの対戦部屋にユーザを登録。
+
+        :return:
+        """
+        pass
+
+    def get_room(self):
+        """指定した対戦部屋の情報を取得する
+        :return:
+        """
+        pass
+
+    def get_table(self):
+        """対戦情報テーブル(現在のターン, hit&blowの履歴, 勝敗の判定)を取得する.
+        :return:
+        """
+        pass
+
+    def post_hidden(self):
+        """相手が当てる5桁の16進数を登録する. ※アルファベットは小文字のみ
+        :return:
+        """
+        pass
+
+    def post_guess(self):
+        """推測した数字を登録する
+        :return:
+        """
+        pass
