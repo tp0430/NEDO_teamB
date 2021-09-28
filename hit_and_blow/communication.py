@@ -10,6 +10,7 @@
 """
 import requests
 
+
 class APICom:
     """通信用モジュール
 
@@ -19,13 +20,23 @@ class APICom:
     """
 
     def __init__(self, player_id, player_name, room_id):
-        pass
+        self.URL = "https://damp-earth-70561.herokuapp.com"
+        self.session = requests.Session()
+        self.player_id = player_id
+        self.HEADERS = {"Content-Type": "application/json"}
+
+        self.room_id = room_id  # ここの値は2000~2999の範囲(使ってもいい部分)で都度変える。
 
     def get_rooms(self):
         """全ての対戦部屋の情報を取得する.
         :return:
         """
-        pass
+        url_get_all_rooms = self.URL + "/rooms/"
+
+        result = self.session.get(url_get_all_rooms)
+
+        # print(result.status_code)
+        return result.json()
 
     def enter_room(self):
         """対戦部屋を作成し、指定したユーザを登録する。
@@ -34,7 +45,15 @@ class APICom:
 
         :return:
         """
-        pass
+        url_enter_room = self.URL + "/rooms/"
+        enter_room_json = {"player_id": self.player_id, "room_id": self.room_id}
+
+        result = self.session.post(
+            url_enter_room, headers=self.HEADERS, json=enter_room_json
+        )
+
+        # print(result.status_code)
+        return result.json()
 
     def get_room(self):
         """指定した対戦部屋の情報を取得する
