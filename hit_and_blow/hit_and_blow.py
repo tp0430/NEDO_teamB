@@ -7,6 +7,7 @@
 """
 
 from display import display_test
+from communication import APICom
 
 
 def main():
