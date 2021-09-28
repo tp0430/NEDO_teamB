@@ -24,6 +24,7 @@ class APICom:
         self.session = requests.Session()
         self.player_id = player_id
         self.HEADERS = {"Content-Type": "application/json"}
+        self.player_name = player_name
 
         self.room_id = room_id  # ここの値は2000~2999の範囲(使ってもいい部分)で都度変える。
 
@@ -59,22 +60,45 @@ class APICom:
         """指定した対戦部屋の情報を取得する
         :return:
         """
-        pass
+        url_get_room = self.URL + "/rooms/" + str(self.room_id)
+
+        result = self.session.get(url_get_room)
+
+        # print(result.status_code)
+        return result.json()
 
     def get_table(self):
         """対戦情報テーブル(現在のターン, hit&blowの履歴, 勝敗の判定)を取得する.
         :return:
         """
-        pass
+        url_get_table = self.URL + "/rooms/" + str(self.room_id) + "/players/" + self.player_name + "/table"
 
-    def post_hidden(self):
+        result = self.session.get(url_get_table)
+
+        # print(result.status_code)
+        return result.json()
+
+
+    def post_hidden(self, hidden_number : str):
         """相手が当てる5桁の16進数を登録する. ※アルファベットは小文字のみ
         :return:
         """
-        pass
+        url_post_hidden = self.URL + "/rooms/" + str(self.room_id) + "/players/" + self.player_name + "/hidden"
+        post_hidden_json = {"player_id": self.player_id, "hidden_number": hidden_number}
 
-    def post_guess(self):
+        result = self.session.post(url_post_hidden, headers=self.HEADERS, json=post_hidden_json)
+
+        # print(result.status_code)
+        return result.json()
+
+    def post_guess(self, guess_number : str):
         """推測した数字を登録する
         :return:
         """
-        pass
+        url_post_guess = self.URL + "/rooms/" + str(self.room_id) + "/players/" + self.player_name + "/table/guesses"
+        post_guess_json = {"player_id": self.player_id, "guess": guess_number}
+
+        result = self.session.post(url_post_guess, headers=self.HEADERS, json=post_guess_json)
+
+        # print(result.status_code)
+        return result.json()
