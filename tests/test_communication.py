@@ -10,14 +10,20 @@ import requests
 from hit_and_blow.communication import APICom
 
 
-#ROOM_IDは毎回変える。
-ROOM_ID = 8006
+#room_idは毎回変える。
+room_id = 8000
+url_get_all_rooms = "https://damp-earth-70561.herokuapp.com/rooms"
+session = requests.Session()
+all_rooms = session.get(url_get_all_rooms)
+all_used_id = [js["id"] for js in all_rooms.json()]
+while room_id in all_used_id:
+    room_id += 1
 
 ComB = APICom(
-    player_id="7d025351-7836-4904-a48f-f58019b6ca77", player_name="B", room_id=ROOM_ID,
+    player_id="7d025351-7836-4904-a48f-f58019b6ca77", player_name="B", room_id=room_id,
 )
 ComB2 = APICom(
-    player_id="a9c2784a-2279-4215-bc7d-1255dbdf911d", player_name="B2", room_id=ROOM_ID,
+    player_id="a9c2784a-2279-4215-bc7d-1255dbdf911d", player_name="B2", room_id=room_id,
 )
 
 
@@ -28,9 +34,9 @@ def test_get_room():
     get_B = ComB.get_room()
 
     assert (
-        get_B["id"] == ROOM_ID
+        get_B["id"] == room_id
         and get_B["player1"] == "B"
-        and get_B["player2"] == "None"
+        and get_B["player2"] == None
     )
 
 
@@ -38,7 +44,7 @@ def test_get_room2():
     ComB2.enter_room()
     get_B2 = ComB2.get_room()
     assert (
-        get_B2["id"] == ROOM_ID
+        get_B2["id"] == room_id
         and get_B2["player1"] == "B"
         and get_B2["player2"] == "B2"
     )
