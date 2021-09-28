@@ -30,7 +30,7 @@ def test_get_room():
     assert (
         get_B["id"] == ROOM_ID
         and get_B["player1"] == "B"
-        and get_B["player2"] == "B2"
+        and get_B["player2"] == "None"
     )
 
 
