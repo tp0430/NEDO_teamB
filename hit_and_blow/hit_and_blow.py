@@ -37,14 +37,14 @@ if __name__ == "__main__":
     
     while api_com.get_room()["state"] == 2:
 
-        if api_com.get_table()["now_player"] == api_com.player_name:
+        if api_com.get_table()["now_player"] == api_com._player_name:
             guess_num = input("enter guess number --- ")
 
             api_com.post_guess(guess_number = guess_num)
         
         time.sleep(1)
     
-    if api_com.get_table()["winner"] == api_com.player_name:
+    if api_com.get_table()["winner"] == api_com._player_name:
 
         print("YOU WIN !!")
     else:
