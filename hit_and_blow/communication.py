@@ -13,13 +13,20 @@ import requests
 
 class APICom:
     """通信用モジュール
-
+    :param str URL:サーバのURL
+    :param requests.sessions.Session session: session id
     :param str player_id: プレーヤーID
+    :param dict HEADERS: ヘッダ
     :param str player_name: プレーヤー名
     :param int room_id: ルームID
     """
 
     def __init__(self, player_id, player_name, room_id):
+        """
+        :param str player_id:プレイヤーID
+        :param str player_name:プレイヤー名
+        :param str room_id:ルームID
+        """
         self.URL = "https://damp-earth-70561.herokuapp.com"
         self.session = requests.Session()
         self.player_id = player_id
@@ -30,7 +37,8 @@ class APICom:
 
     def get_rooms(self):
         """全ての対戦部屋の情報を取得する.
-        :return:
+        :rtype:dict
+        :return: 全ての対戦部屋のURL
         """
         url_get_all_rooms = self.URL + "/rooms/"
 
@@ -44,6 +52,7 @@ class APICom:
         待機中の状態の対戦部屋が存在する場合は、指定したユーザを該当の対戦部屋のプレイヤーとして登録する。
         selfにルームIDを指定した場合は、該当のルームIDの対戦部屋にユーザを登録。
 
+        :rtype:dict
         :return:
         """
         url_enter_room = self.URL + "/rooms/"
@@ -58,7 +67,9 @@ class APICom:
 
     def get_room(self):
         """指定した対戦部屋の情報を取得する
-        :return:
+
+        :rtype:dict
+        :return: 指定した対戦部屋のURL
         """
         url_get_room = self.URL + "/rooms/" + str(self.room_id)
 
@@ -69,7 +80,9 @@ class APICom:
 
     def get_table(self):
         """対戦情報テーブル(現在のターン, hit&blowの履歴, 勝敗の判定)を取得する.
-        :return:
+
+        :rtype:dict
+        :return: 現在のターン，hit&blowの履歴，勝敗の判定
         """
         url_get_table = self.URL + "/rooms/" + str(self.room_id) + "/players/" + self.player_name + "/table"
 
@@ -81,7 +94,10 @@ class APICom:
 
     def post_hidden(self, hidden_number : str):
         """相手が当てる5桁の16進数を登録する. ※アルファベットは小文字のみ
-        :return:
+
+        :param str hidden_number: こちらが指定する答え
+        :rtype:dict
+        :return:{"プレイヤーID":"指定した答え"}
         """
         url_post_hidden = self.URL + "/rooms/" + str(self.room_id) + "/players/" + self.player_name + "/hidden"
         post_hidden_json = {"player_id": self.player_id, "hidden_number": hidden_number}
@@ -93,7 +109,9 @@ class APICom:
 
     def post_guess(self, guess_number : str):
         """推測した数字を登録する
-        :return:
+        :param str guess_number: 推測した数値
+        :rtype:dict
+        :return:{"プレイヤーID":"推測した答え"}
         """
         url_post_guess = self.URL + "/rooms/" + str(self.room_id) + "/players/" + self.player_name + "/table/guesses"
         post_guess_json = {"player_id": self.player_id, "guess": guess_number}
