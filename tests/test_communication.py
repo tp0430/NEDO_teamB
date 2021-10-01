@@ -20,10 +20,10 @@ while room_id in all_used_id:
     room_id += 1
 
 com_b = APICom(
-    player_id="7d025351-7836-4904-a48f-f58019b6ca77", player_name="B", room_id=room_id,
+    player_name="B", room_id=room_id,
 )
 com_b2 = APICom(
-    player_id="a9c2784a-2279-4215-bc7d-1255dbdf911d", player_name="B2", room_id=room_id,
+    player_name="B2", room_id=room_id,
 )
 
 
