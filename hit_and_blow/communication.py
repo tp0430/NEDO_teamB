@@ -31,7 +31,7 @@ class APICom:
         self._player_id = self._player_list[player_name]
         self._room_id = room_id  # ここの値は2000~2999の範囲(使ってもいい部分)で都度変える。
 
-    def _register_player():
+    def _register_player(self):
         ret = {}
         ret["B"] = "7d025351-7836-4904-a48f-f58019b6ca77"
         ret["B2"] = "a9c2784a-2279-4215-bc7d-1255dbdf911d"
