@@ -5,7 +5,6 @@ from typing import Sized, Tuple, List
 ANS_LEN = 5
 MIN_ANS = 0
 MAX_ANS = 15
-MAX_ANSER_NUM = 524160
 
 class Brain:
 
