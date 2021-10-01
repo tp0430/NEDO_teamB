@@ -150,25 +150,41 @@ def hit_and_blow(guess: str, ans: str) -> Tuple[int, int]:
     blow = len(set(guess) & set(ans)) - hit
     return (hit, blow)
 
+# 性能テスト
 if __name__ == "__main__":
 
-    ans = make_number_random()
-    print("ans---{}".format(ans))
+    repetition = 100
+    times_to_correct = {}
 
-    brain = Brain()
+    # 処理速度計測
+    time_start = time.time()
 
-    guess_num = None
-    guess_result = None
+    for i in range(repetition):
+        brain = Brain()
+        ans = make_number_random()
+        # print("ans---{}".format(ans))
 
-    while 1:
-        
-        guess_num = brain.guess(guess_num, guess_result)
-        print(guess_num)
+        guess_num = None
+        guess_result = None
+        while 1:
+            
+            guess_num = brain.guess(guess_num, guess_result)
+            guess_result = hit_and_blow(guess_num, ans)
+            # print("{} : {}".format(guess_num, guess_result))
 
-        guess_result = hit_and_blow(guess_num, ans)
-        print(guess_result)
-        print("")
+            if guess_result[0] == 5:
 
-        if guess_result[0] == 5:
-            print("game finish!")
-            break
+                if brain.cnt in times_to_correct:
+                    times_to_correct[brain.cnt] += 1
+                else:
+                    times_to_correct[brain.cnt] = 1
+                # print("game finish!, {} times".format(brain.cnt))
+                break
+    
+    processing_time = time.time() - time_start
+
+    times_to_correct = sorted(times_to_correct.items())
+    print(times_to_correct)
+    print("time to finish this process {} times : {}".format(repetition, processing_time))
+
+
