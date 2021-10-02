@@ -74,7 +74,7 @@ class ManualPlayer:
 
                 print("{} : {}".format(guess_num, guess_result))
 
-                time.sleep(1)
+            time.sleep(1)
         self._end_game = True
         return
 
@@ -145,7 +145,7 @@ class AutoPlayer(ManualPlayer):
 
         return ret
 
-    def select_guess_num(self) -> None:
+    def _select_guess_num(self) -> None:
         return random.choice(self._possible_answers)
 
     def _hit_and_blow(self, guess: str, ans: str) -> Tuple[int, int]:
