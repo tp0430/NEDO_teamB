@@ -24,7 +24,6 @@ class APICom:
 
     def __init__(self, player_name: str, room_id: int):
         """
-        :param str player_id:プレイヤーID
         :param str player_name:プレイヤー名
         :param int room_id:ルームID
         :rtype:None
