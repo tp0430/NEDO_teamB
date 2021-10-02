@@ -108,6 +108,18 @@ class ManualPlayer:
 
 
 class AutoPlayer(ManualPlayer):
+    """手動プレイ用モジュール。
+    :param bool _start_game: ゲームが開始できているか。
+    :param bool _end_game: ゲームが終了しているか。
+    :param str _player_name: プレーヤー名
+    :param int _room_id: ルームID
+    :param str _hidden_number: 相手が当てる数字
+    :param APICom _api_com: APIComクラスの通信用オブジェクト
+    :param List[str] _possible_answers: 答となりうる数字のリスト
+    :param List[str] _guess_history: 推測履歴
+    :param _guess_result_history: 推測した結果の履歴
+    :param _cnt: 推測回数
+    """
     def __init__(self, room_id, player_name) -> None:
         super(AutoPlayer, self).__init__(room_id, player_name)
         self._possible_answers: List[str] = self._make_all_number_list()
@@ -145,7 +157,11 @@ class AutoPlayer(ManualPlayer):
 
         return ret
 
-    def _select_guess_num(self) -> None:
+    def _select_guess_num(self) -> str:
+        """答の候補から一つ抽出
+        :param なし
+        :return str: 選ばれた数字
+        """
         return random.choice(self._possible_answers)
 
     def _hit_and_blow(self, guess: str, ans: str) -> Tuple[int, int]:
