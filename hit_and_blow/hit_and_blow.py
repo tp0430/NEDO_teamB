@@ -8,6 +8,7 @@
 
 from player import ManualPlayer, AutoPlayer
 
+
 def main():
     player_name = input("enter player name: ")
     room_id = int(input("enter room ID: "))
