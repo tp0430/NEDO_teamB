@@ -9,27 +9,59 @@ ANS_LEN: int = 5
 MIN_ANS: int = 0
 MAX_ANS: int = 15
 
-class ManualPlayer():
-    def __init__(self, room_id, player_name) -> None:
-        self._start_game:bool = False
-        self._end_game:bool = False
+
+class ManualPlayer:
+    """手動プレイ用モジュール。
+    :param bool _start_game: ゲームが開始できているか。
+    :param bool _end_game: ゲームが終了しているか。
+    :param str _player_name: プレーヤー名
+    :param int _room_id: ルームID
+    :param str _hidden_number: 相手が当てる数字
+    :param APICom _api_com: APIComクラスの通信用オブジェクト
+    """
+
+    def __init__(self, room_id: int, player_name: str) -> None:
+        """コンストラクタ
+        :param int room_id: ルームID
+        :param str player_name: プレーヤー名
+        :rtype: None
+        :return: なし
+        """
+
+        self._start_game: bool = False
+        self._end_game: bool = False
         self._player_name: str = player_name
         self._room_id: int = room_id
         self._hidden_number: str = input("enter hidden number : ")
-        self._api_com: APICom = APICom(player_name=self._player_name, room_id=self._room_id)
-    
-    def _init_game(self):
+        self._api_com: APICom = APICom(
+            player_name=self._player_name, room_id=self._room_id
+        )
+
+    def _init_game(self) -> None:
+        """ゲーム開始の作業をひとまとめにした関数。
+        ゲーム開始が確認されたら、self._start_gameがTrueになる。
+        :param: なし
+        :rtype: None
+        :return: なし
+        """
+
         _ = self._api_com.enter_room()
         while self._api_com.get_room()["state"] == 1:
             print("now waiting opponent")
             time.sleep(5)
         self._api_com.post_hidden(hidden_number=self._hidden_number)
         self._start_game = True
-        return 
+        return
 
-    def _proceed_game(self):
-        guess_num = None
-        guess_result = None
+    def _proceed_game(self) -> None:
+        """ゲーム中の操作をひとまとめにした関数。
+        ゲーム終了が確認されると、self._end_gameがTrueになる。
+        :param: なし
+        :rtype: None
+        :return: なし
+        """
+        guess_num: str = None
+        guess_result: Tuple[int, int] = None
         while self._api_com.get_table()["state"] == 2:
 
             table = self._api_com.get_table()
@@ -45,30 +77,45 @@ class ManualPlayer():
                 time.sleep(1)
         self._end_game = True
         return
-    
-    def _show_result(self):
+
+    def _show_result(self) -> None:
+        """対戦結果を表示する。
+        :param: なし
+        :rtype: None
+        :return: なし
+        """
+
+        # drawだった時の判定を拾えていない
         if self._api_com.get_table()["winner"] == self._player_name:
             print("YOU WIN!")
         else:
             print("YOU LOSE")
+        return
 
-    def play_game(self):
+    def play_game(self) -> None:
+        """ゲーム開始から終了までの一連の流れ
+        :param: なし
+        :rtype: None
+        :return: なし
+        """
         self._init_game()
         if self._start_game == True:
             print("GAME START!")
             self._proceed_game()
             if self._end_game == True:
+                self._show_result()
                 return
+
 
 class AutoPlayer(ManualPlayer):
     def __init__(self, room_id, player_name) -> None:
         super(AutoPlayer, self).__init__(room_id, player_name)
-        self.possible_answers: List[str] = self.make_all_number_list()
-        self.guess_history: List[str] = []
-        self.guess_result_history: List[Tuple[int, int]] = []
-        self.cnt: int = 0
+        self._possible_answers: List[str] = self._make_all_number_list()
+        self._guess_history: List[str] = []
+        self._guess_result_history: List[Tuple[int, int]] = []
+        self._cnt: int = 0
 
-    def make_all_number_list(self) -> List[str]:
+    def _make_all_number_list(self) -> List[str]:
 
         """全ての候補を取得
         :return List[str]: 取りうる全ての答え(524160通り)
@@ -99,9 +146,9 @@ class AutoPlayer(ManualPlayer):
         return ret
 
     def select_guess_num(self) -> None:
-        return random.choice(self.possible_answers)
+        return random.choice(self._possible_answers)
 
-    def hit_and_blow(self, guess: str, ans: str) -> Tuple[int, int]:
+    def _hit_and_blow(self, guess: str, ans: str) -> Tuple[int, int]:
         """hit&blowのゲーム。
         :param str guess: 予想した値。
         :param str ans: 正解の値(本来は相手のものは分からない)。
@@ -117,7 +164,7 @@ class AutoPlayer(ManualPlayer):
 
         return (hit, blow)
 
-    def narrow_guess_num_list(
+    def _narrow_guess_num_list(
         self, guess_num: str = None, guess_result: Tuple[int, int] = None
     ) -> int:
 
@@ -128,20 +175,19 @@ class AutoPlayer(ManualPlayer):
         """
 
         if guess_num == None:
-            guess_num = self.guess_history[-1]
+            guess_num = self._guess_history[-1]
         if guess_result == None:
-            guess_result = self.guess_result_history[-1]
+            guess_result = self._guess_result_history[-1]
 
-        # 元のリストから一つずつ要素を削除するとO(n^2)の計算時間がかかるので、違うリストを用意して移す
-        self.possible_answers = [
+        self._possible_answers = [
             item
-            for item in self.possible_answers
-            if guess_result == self.hit_and_blow(guess=guess_num, ans=item)
+            for item in self._possible_answers
+            if guess_result == self._hit_and_blow(guess=guess_num, ans=item)
         ]
 
-        return len(self.possible_answers)
+        return len(self._possible_answers)
 
-    def guess(
+    def _guess(
         self, guess_num_prev: str = None, guess_result_prev: Tuple[int, int] = None
     ) -> str:
 
@@ -151,18 +197,18 @@ class AutoPlayer(ManualPlayer):
         :return str: 次に推測すべき数字
         """
 
-        self.cnt += 1
+        self._cnt += 1
 
         if guess_num_prev != None:
-            self.guess_history.append(guess_num_prev)
-            self.guess_result_history.append(guess_result_prev)
+            self._guess_history.append(guess_num_prev)
+            self._guess_result_history.append(guess_result_prev)
 
-            self.narrow_guess_num_list()
+            self._narrow_guess_num_list()
 
-        return self.select_guess_num()
+        return self._select_guess_num()
 
     def _proceed_game(self):
-        #継承元のproceed_gameを上書き
+        # 継承元のproceed_gameを上書き
         guess_num = None
         guess_result = None
         while self._api_com.get_table()["state"] == 2:
@@ -170,14 +216,14 @@ class AutoPlayer(ManualPlayer):
             table = self._api_com.get_table()
             if table["now_player"] == self._player_name:
 
-                guess_num = self.guess(guess_num, guess_result)
+                guess_num = self._guess(guess_num, guess_result)
                 self._api_com.post_guess(guess_number=guess_num)
                 latest_result = self._api_com.get_table()["table"][-1]
                 guess_result = (latest_result["hit"], latest_result["blow"])
 
                 print("{} : {}".format(guess_num, guess_result))
 
-                time.sleep(1)
+            time.sleep(1)
         self._end_game = True
         return
 
@@ -230,7 +276,6 @@ def hit_and_blow(guess: str, ans: str) -> Tuple[int, int]:
             hit += 1
     blow = len(set(guess) & set(ans)) - hit
     return (hit, blow)
-
 
 
 """
