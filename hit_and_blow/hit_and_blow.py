@@ -6,7 +6,7 @@
     * Created by: KENTA Mizuhara
 """
 
-from player import ManualPlayer, AutoPlayer
+from player import Player
 
 
 def main():
@@ -14,9 +14,9 @@ def main():
     room_id = int(input("enter room ID: "))
     player_type = input("enter player type (manual/auto): ")
     if player_type == "manual":
-        game_player = ManualPlayer(room_id=room_id, player_name=player_name)
+        game_player = Player(room_id=room_id, player_name=player_name)
     elif player_type == "auto":
-        game_player = AutoPlayer(room_id=room_id, player_name=player_name)
+        game_player = Player(room_id=room_id, player_name=player_name, mode= 1)
     game_player.play_game()
 
 
