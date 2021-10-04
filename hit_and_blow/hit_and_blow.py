@@ -15,11 +15,11 @@ def main():
     player_name = st.text_input("PLAYER NAME")
     room_id = int(st.number_input("ROOM ID"))
     player_mode = st.radio("Select game mode", ["manual", "auto"])
-    if player_mode == "manual":
-        game_player = Player(room_id=room_id, player_name=player_name)
-    elif player_mode == "auto":
-        game_player = Player(room_id=room_id, player_name=player_name, mode=1)
     if len(player_name) != 0 and room_id != 0:
+        if player_mode == "manual":
+            game_player = Player(room_id=room_id, player_name=player_name)
+        elif player_mode == "auto":
+            game_player = Player(room_id=room_id, player_name=player_name, mode=1)
         game_player.play_game()
 
 
