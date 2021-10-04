@@ -1,14 +1,16 @@
 import random
 from typing import List, Tuple
 
+
 class AutoGuess:
     """自動推測クラス
     基本的にguess(guesss_num_prev, guess_result_prev)を呼び出すだけ
     :self._possible_answers List[str] : 答えとなりうる数字のリスト
     :self._guess_history : 過去に推測した数字のリスト
     :self._guess_result_history : 過去に推測した数字の結果のリスト
-    :self._cnt int : 推測した回数 
+    :self._cnt int : 推測した回数
     """
+
     def __init__(self) -> None:
         self._possible_answers: List[str] = self._make_all_number_list()
         self._guess_history: List[str] = []
@@ -16,7 +18,7 @@ class AutoGuess:
         self._cnt: int = 0
 
     def _make_all_number_list(self) -> List[str]:
-    
+
         """全ての候補を取得
         :return List[str]: 取りうる全ての答え(524160通り)
         """

@@ -46,7 +46,9 @@ def display_test():
     # 辞書の出力
     d = {
         "foo": "bar",
-        "users": ["alice", "bob",],
+        "users": [
+            "alice",
+            "bob",
+        ],
     }
     st.json(d)
-

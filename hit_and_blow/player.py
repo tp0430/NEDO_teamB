@@ -55,7 +55,7 @@ class Player:
         while self._api_com.get_room()["state"] == 1:
             if display_waiting == False:
                 st.write("now waiting opponent")
-                display_waiting =True
+                display_waiting = True
             time.sleep(5)
         self._api_com.post_hidden(hidden_number=self._hidden_number)
         self._is_start_game = True
