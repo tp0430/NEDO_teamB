@@ -81,7 +81,7 @@ class Player:
                 latest_result = self._api_com.get_table()["table"][-1]
                 guess_result = (latest_result["hit"], latest_result["blow"])
 
-                print("{} : {}".format(guess_num, guess_result))
+                st.write("{} : {}".format(guess_num, guess_result))
 
             time.sleep(1)
         self._is_end_game = True
@@ -109,7 +109,7 @@ class Player:
                 latest_result = self._api_com.get_table()["table"][-1]
                 guess_result = (latest_result["hit"], latest_result["blow"])
 
-                print("{} : {}".format(guess_num, guess_result))
+                st.write("{} : {}".format(guess_num, guess_result))
 
             time.sleep(1)
         self._is_end_game = True
@@ -124,11 +124,11 @@ class Player:
 
         winner = self._api_com.get_table()["winner"]
         if winner == self._player_name:
-            print("YOU WIN!")
+            st.write("YOU WIN!")
         elif winner == None:
-            print("DRAW")
+            st.write("DRAW")
         else:
-            print("YOU LOSE")
+            st.write("YOU LOSE")
         return
 
     def play_game(self) -> None:
@@ -139,7 +139,7 @@ class Player:
         """
         self._init_game()
         if self._is_start_game == True:
-            print("GAME START!")
+            st.write("Game Start")
 
             if self.mode:
                 self._proceed_game_auto()
