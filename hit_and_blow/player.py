@@ -5,6 +5,7 @@ from typing import Tuple, List
 from communication import APICom
 from auto_guess import AutoGuess
 
+import streamlit as st
 
 ANS_LEN: int = 5
 MIN_ANS: int = 0
@@ -31,14 +32,13 @@ class Player:
         """
         self._is_start_game: bool = False
         self._is_end_game: bool = False
-        self._room_id: int = room_id        
+        self._room_id: int = room_id
         self._player_name: str = player_name
-        self._hidden_number: str = input("enter hidden number : ")
+        self._hidden_number: str = st.text_input("Enter hidden number")
         self._api_com: APICom = APICom(
             player_name=self._player_name, room_id=self._room_id
         )
         self.mode: int = mode
-            
 
     def _init_game(self) -> None:
         """ゲーム開始の作業をひとまとめにした関数。
@@ -49,8 +49,13 @@ class Player:
         """
 
         _ = self._api_com.enter_room()
+
+        display_waiting = False
+
         while self._api_com.get_room()["state"] == 1:
-            print("now waiting opponent")
+            if display_waiting == False:
+                st.write("now waiting opponent")
+                display_waiting =True
             time.sleep(5)
         self._api_com.post_hidden(hidden_number=self._hidden_number)
         self._is_start_game = True
@@ -71,7 +76,7 @@ class Player:
             table = self._api_com.get_table()
             if table["now_player"] == self._player_name:
 
-                guess_num = input("enter guess number : ")
+                guess_num = st.text_input("enter guess number")
                 self._api_com.post_guess(guess_number=guess_num)
                 latest_result = self._api_com.get_table()["table"][-1]
                 guess_result = (latest_result["hit"], latest_result["blow"])
@@ -143,8 +148,6 @@ class Player:
             if self._is_end_game == True:
                 self._show_result()
                 return
-
-
 
 
 """

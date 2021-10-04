@@ -5,14 +5,16 @@
     * Created on: September 22
     * Created by: KENTA Mizuhara
 """
+import streamlit as st
 
 from player import Player
 
 
 def main():
-    player_name = input("enter player name: ")
-    room_id = int(input("enter room ID: "))
-    player_type = input("enter player type (manual/auto): ")
+    st.title("Hit and Blow")
+    player_name = st.text_input("PLAYER NAME")
+    room_id = int(st.text_input("ROOM ID"))
+    player_type = st.text_input("PLAYER TYPE (manual/auto)")
     if player_type == "manual":
         game_player = Player(room_id=room_id, player_name=player_name)
     elif player_type == "auto":
