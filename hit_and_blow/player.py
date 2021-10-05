@@ -7,6 +7,8 @@ from communication import APICom
 from auto_guess import AutoGuess
 
 import streamlit as st
+import pandas as pd
+from PIL import Image
 
 ANS_LEN: int = 5
 MIN_ANS: int = 0
@@ -72,7 +74,7 @@ class Player:
 
         guess_num: str = None
         guess_result: Tuple[int, int] = None
-        key_for_input:int = 0
+        key_for_input: int = 0
 
         while self._api_com.get_table()["state"] == 2:
 
@@ -86,7 +88,9 @@ class Player:
                     self._api_com.post_guess(guess_number=guess_num)
                     latest_result = self._api_com.get_table()["table"][-1]
                     guess_result = (latest_result["hit"], latest_result["blow"])
-                    st.write("{} : {}".format(guess_num, guess_result))
+                    st.write(
+                        "hit : {}, blow : {}".format(guess_result[0], guess_result[1])
+                    )
                     key_for_input += 1
 
             time.sleep(1)
@@ -105,6 +109,10 @@ class Player:
 
         guess_num: str = None
         guess_result: Tuple[int, int] = None
+        # 以下3つ暫定．もう少し良い変数設定方法があるはずだけど実害なし (不要になったら消すだけで済む)
+        guess_numbers_list = []
+        guess_result_hit = []
+        guess_result_blow = []
         while self._api_com.get_table()["state"] == 2:
 
             table = self._api_com.get_table()
@@ -114,10 +122,29 @@ class Player:
                 self._api_com.post_guess(guess_number=guess_num)
                 latest_result = self._api_com.get_table()["table"][-1]
                 guess_result = (latest_result["hit"], latest_result["blow"])
+                guess_numbers_list.append(guess_num)
+                guess_result_hit.append(guess_result[0])
+                guess_result_blow.append(guess_result[1])
 
-                st.write("{} : {}".format(guess_num, guess_result))
-
+                """
+                st.write(
+                    "guess number : {} , hit : {} , blow : {}".format(
+                        guess_num, guess_result[0], guess_result[1]
+                    )
+                )
+                """
             time.sleep(1)
+
+        st.write(
+            pd.DataFrame(
+                {
+                    "guess number": guess_numbers_list,
+                    "hit": guess_result_hit,
+                    "blow": guess_result_blow,
+                }
+            )
+        )
+
         self._is_end_game = True
         return
 
@@ -131,10 +158,13 @@ class Player:
         winner = self._api_com.get_table()["winner"]
         if winner == self._player_name:
             st.write("YOU WIN!")
+            st.image("https://i.imgur.com/HXOn5pT.jpg", use_column_width=True)
         elif winner == None:
             st.write("DRAW")
+            st.image("https://i.imgur.com/HZ544rn.jpg", use_column_width=True)
         else:
             st.write("YOU LOSE")
+            st.image("https://i.imgur.com/lVVJ6TA.jpg", use_column_width=True)
         return
 
     def play_game(self) -> None:
