@@ -6,47 +6,53 @@
     * Created by: KENTA Mizuhara
 """
 
-import streamlit as st
+import tkinter as tk
+import tkinter.ttk as ttk
 
 
-def display_test():
-    # Streamlit が対応している任意のオブジェクトを可視化する (ここでは文字列)
-    # タイトル
-    st.title("Application title")
-    # ヘッダ
-    st.header("Header")
-    # テキストを入力
-    input_text = st.text_input("何か入力してみて", "something")
-    # 入力されたテキストを出力
-    st.text("入力された文字は:")
+def main():
+    # rootウィンドウ
+    root = tk.Tk()
+    root.title("test_login_screen")
+    root.geometry("800x600")
 
-    if input_text == "amongus":
-        st.header("AMONGUS")
-    else:
-        st.text(input_text)
+    # よくわからないが、グリッドを1x1にしている(らしい)
+    root.grid_rowconfigure(0, weight=1)
+    root.grid_columnconfigure(0, weight=1)
 
-    # サブレベルヘッダ
-    st.subheader("Sub header")
-    # マークダウンテキスト
-    st.markdown("**Markdown is available **")
-    # LaTeX テキスト
-    st.latex(r"\bar{X} = \frac{1}{N} \sum_{n=1}^{N} x_i")
-    # コードスニペット
-    st.code("print('Hello, World!')")
-    # エラーメッセージ
-    st.error("Error message")
-    # 警告メッセージ
-    st.warning("Warning message")
-    # 情報メッセージ
-    st.info("Information message")
-    # 成功メッセージ
-    st.success("Success message")
-    # 例外の出力
-    st.exception(Exception("Oops!"))
-    # 辞書の出力
-    d = {
-        "foo": "bar",
-        "users": ["alice", "bob",],
-    }
-    st.json(d)
+    #ログイン画面のフレーム
+    frame_login = ttk.Frame(root)
+    frame_login.grid(row= 0, column= 0, sticky= "nsew", pady= 20)
 
+    label_player_name = ttk.Label(frame_login, text="プレイヤー名を入力してください")
+    box_player_name = ttk.Entry(frame_login, width = 50)
+    label_player_name.pack()
+    box_player_name.pack()
+
+    label_room_id = ttk.Label(frame_login, text="部屋番号を入力してください")
+    box_room_id = ttk.Entry(frame_login, width = 50)
+    label_room_id.pack()
+    box_room_id.pack()
+
+    # main フレーム
+    frame_main = ttk.Frame(root)
+    frame_main.grid(row=0, column=0, sticky="nsew", pady=20)
+    label_main = ttk.Label(frame_main, text= "メインフレーム")
+    label_main.pack()
+
+    def myclick():
+        print("player name: {}".format(box_player_name.get()))
+        print("room id: {}".format(box_room_id.get()))
+        button["state"] = tk.DISABLED
+        frame_main.tkraise()
+
+    button = ttk.Button(frame_login, text = "Enter", width= 50, command= myclick)
+    button.pack()
+
+    frame_login.tkraise()
+
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    main()
