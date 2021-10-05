@@ -34,6 +34,11 @@ def main():
     label_room_id.pack()
     box_room_id.pack()
 
+    label_mode = ttk.Label(frame_login, text= "モードを選択(auto/manual)")
+    box_mode = ttk.Entry(frame_login, width= 50)
+    label_mode.pack()
+    box_mode.pack()
+
     # main フレーム
     frame_main = ttk.Frame(root)
     frame_main.grid(row=0, column=0, sticky="nsew", pady=20)

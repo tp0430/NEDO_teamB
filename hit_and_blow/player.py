@@ -5,6 +5,12 @@ from typing import Tuple, List
 from communication import APICom
 from auto_guess import AutoGuess
 
+import hit_and_blow
+import tkinter as tk
+import tkinter.ttk as ttk
+
+from hit_and_blow.hit_and_blow import FRAME_MAIN
+
 
 ANS_LEN: int = 5
 MIN_ANS: int = 0
@@ -63,6 +69,10 @@ class Player:
         :rtype: None
         :return: なし
         """
+        label_player_name = ttk.Label(FRAME_MAIN, text="推測する数字を入力")
+        box_player_name = ttk.Entry(FRAME_MAIN, width = 50)
+        label_player_name.pack()
+        box_player_name.pack()
 
         guess_num: str = None
         guess_result: Tuple[int, int] = None
