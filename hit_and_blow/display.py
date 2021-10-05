@@ -53,11 +53,24 @@ def display_test():
     }
     st.json(d)
 
-def printee(a):
-    st.text(a)
+import threading
 
-def onchange():
-    a = st.text_input("write")
-    st.button("input", on_click=printee(a))
+class WaitInput():
+    def __init__(self):
+        self.text = ""
+        self.event = None
 
-onchange()
+    def thread_input(self):
+        self.event = threading.Event()
+        self.text = st.text_input("入力して")
+        self.event.wait()
+        st.text("そこから先の処理")
+
+    def wait_input(self):
+        thread = threading.Thread(target=self.thread_input)
+        thread.start()
+        if len(self.text) != 0:
+            self.event.set()
+
+tmp = WaitInput()
+tmp.wait_input()

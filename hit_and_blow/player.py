@@ -1,5 +1,6 @@
 import random
 import time
+import threading
 from typing import Tuple, List
 
 from communication import APICom
@@ -71,16 +72,20 @@ class Player:
 
         guess_num: str = None
         guess_result: Tuple[int, int] = None
-        guess_num = st.text_input("enter guess number")
-        while self._api_com.get_table()["state"] == 2:
+        key_for_input = 0
+
+        if self._api_com.get_table()["state"] == 2:
             table = self._api_com.get_table()
             if table["now_player"] == self._player_name:
-                self._api_com.post_guess(guess_number=guess_num)
-                latest_result = self._api_com.get_table()["table"][-1]
-                guess_result = (latest_result["hit"], latest_result["blow"])
-                st.write("{} : {}".format(guess_num, guess_result))
-            time.sleep(1)
-        self._is_end_game = True
+                guess_num = st.text_input("enter guess number", key=key_for_input)
+                if len(guess_num) != 0:
+                    self._api_com.post_guess(guess_number=guess_num)
+                    latest_result = self._api_com.get_table()["table"][-1]
+                    guess_result = (latest_result["hit"], latest_result["blow"])
+                    st.write("{} : {}".format(guess_num, guess_result))
+                    
+        elif self._api_com.get_table()["state"] == 3:
+            self._is_end_game = True
         return
 
     def _proceed_game_auto(self) -> None:
