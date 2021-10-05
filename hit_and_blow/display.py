@@ -52,3 +52,12 @@ def display_test():
         ],
     }
     st.json(d)
+
+def printee(a):
+    st.text(a)
+
+def onchange():
+    a = st.text_input("write")
+    st.button("input", on_click=printee(a))
+
+onchange()

@@ -71,20 +71,14 @@ class Player:
 
         guess_num: str = None
         guess_result: Tuple[int, int] = None
-        key_for_input: int = 0
+        guess_num = st.text_input("enter guess number")
         while self._api_com.get_table()["state"] == 2:
-
             table = self._api_com.get_table()
             if table["now_player"] == self._player_name:
-
-                guess_num = st.text_input("enter guess number", key=key_for_input)
-                key_for_input += 1
                 self._api_com.post_guess(guess_number=guess_num)
                 latest_result = self._api_com.get_table()["table"][-1]
                 guess_result = (latest_result["hit"], latest_result["blow"])
-
                 st.write("{} : {}".format(guess_num, guess_result))
-
             time.sleep(1)
         self._is_end_game = True
         return
@@ -140,7 +134,7 @@ class Player:
         :return: なし
         """
         self._init_game()
-        if self._is_start_game == True:
+        if self._is_start_game == True and len(self._hidden_number) != 0:
             st.write("Game Start")
 
             if self.mode:
