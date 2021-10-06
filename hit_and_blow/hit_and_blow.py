@@ -18,7 +18,7 @@ ROOT.grid_rowconfigure(0, weight=1)
 ROOT.grid_columnconfigure(0, weight=1)
 
 # main フレーム
-FRAME_MAIN = ttk.Frame(root)
+FRAME_MAIN = ttk.Frame(ROOT)
 FRAME_MAIN.grid(row=0, column=0, sticky="nsew", pady=20)
 
 
