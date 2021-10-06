@@ -83,11 +83,13 @@ class Player:
                 if len(guess_num) == 0:
                     st.stop()
                 else:
-                    self._api_com.post_guess(guess_number=guess_num)
-                    latest_result = self._api_com.get_table()["table"][-1]
-                    guess_result = (latest_result["hit"], latest_result["blow"])
-                    st.write("{} : {}".format(guess_num, guess_result))
-                    key_for_input += 1
+                    past_guess = [t["guess"] for t in table["table"]]
+                    if guess_num not in past_guess:
+                        self._api_com.post_guess(guess_number=guess_num)
+                        latest_result = self._api_com.get_table()["table"][-1]
+                        guess_result = (latest_result["hit"], latest_result["blow"])
+                        st.write("{} : {}".format(guess_num, guess_result))
+                key_for_input += 1
 
             time.sleep(1)
         self._is_end_game = True
