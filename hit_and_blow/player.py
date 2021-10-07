@@ -5,11 +5,8 @@ from typing import Tuple, List
 from communication import APICom
 from auto_guess import AutoGuess
 
-import hit_and_blow
 import tkinter as tk
 import tkinter.ttk as ttk
-
-from hit_and_blow.hit_and_blow import FRAME_MAIN
 
 
 ANS_LEN: int = 5
@@ -35,61 +32,50 @@ class Player:
         :rtype: None
         :return: なし
         """
-        self._is_start_game: bool = False
-        self._is_end_game: bool = False
+
         self._room_id: int = room_id        
         self._player_name: str = player_name
-        self._hidden_number: str = input("enter hidden number : ")
+        self._hidden_number: str
         self._api_com: APICom = APICom(
             player_name=self._player_name, room_id=self._room_id
         )
         self.mode: int = mode
+
+        self.guess_num = None
             
-
-    def _init_game(self) -> None:
-        """ゲーム開始の作業をひとまとめにした関数。
-        ゲーム開始が確認されたら、self._start_gameがTrueになる。
+    def set_hidden_num(self, num):
+        self._hidden_number = num
+    
+    def is_my_turn(self):
+        return (self._api_com.get_table()["state"] == 2 ) and (self._api_com.get_table()["now_player"] == self._player_name)
+    
+    def init_game(self) -> None:
+        """入室、数字の登録
         :param: なし
         :rtype: None
         :return: なし
         """
 
-        _ = self._api_com.enter_room()
-        while self._api_com.get_room()["state"] == 1:
-            print("now waiting opponent")
-            time.sleep(5)
+        self._api_com.enter_room()
         self._api_com.post_hidden(hidden_number=self._hidden_number)
-        self._is_start_game = True
         return
+    
+    def check_game_state(self) -> int:
+        return self._api_com.get_table()["state"] 
 
-    def _proceed_game_manual(self) -> None:
-        """マニュアルモードでのゲーム中の操作をひとまとめにした関数。
-        ゲーム終了が確認されると、self._end_gameがTrueになる。
-        :param: なし
-        :rtype: None
-        :return: なし
-        """
-        label_player_name = ttk.Label(FRAME_MAIN, text="推測する数字を入力")
-        box_player_name = ttk.Entry(FRAME_MAIN, width = 50)
-        label_player_name.pack()
-        box_player_name.pack()
-
-        guess_num: str = None
+    def post_guess_num(self, guess_num: str):
         guess_result: Tuple[int, int] = None
-        while self._api_com.get_table()["state"] == 2:
 
-            table = self._api_com.get_table()
-            if table["now_player"] == self._player_name:
+        game_state = self._api_com.get_table()["state"] 
 
-                guess_num = input("enter guess number : ")
-                self._api_com.post_guess(guess_number=guess_num)
-                latest_result = self._api_com.get_table()["table"][-1]
-                guess_result = (latest_result["hit"], latest_result["blow"])
+        if game_state == 2:
 
-                print("{} : {}".format(guess_num, guess_result))
+            self._api_com.post_guess(guess_number=guess_num)
+            latest_result = self._api_com.get_table()["table"][-1]
+            guess_result = (latest_result["hit"], latest_result["blow"])
 
-            time.sleep(1)
-        self._is_end_game = True
+            print("{} : {}".format(guess_num, guess_result))
+
         return
 
     def _proceed_game_auto(self) -> None:
@@ -142,7 +128,7 @@ class Player:
         :rtype: None
         :return: なし
         """
-        self._init_game()
+
         if self._is_start_game == True:
             print("GAME START!")
 
@@ -155,47 +141,12 @@ class Player:
                 return
 
 
+def main():
+
+    pass
 
 
-"""
-テストはtestsの中に書く
 
-# 性能テスト
 if __name__ == "__main__":
 
-    repetition = 100
-    times_to_correct = {}
-
-    # 処理速度計測
-    time_start = time.time()
-
-    for i in range(repetition):
-        auto_player = AutoPlayer()
-        ans = make_number_random()
-        # print("ans---{}".format(ans))
-
-        guess_num = None
-        guess_result = None
-        while 1:
-            
-
-            guess_num = auto_player.guess(guess_num, guess_result)
-            guess_result = hit_and_blow(guess_num, ans)
-            # print("{} : {}".format(guess_num, guess_result))
-            # print(len(auto_player.possible_answers))
-
-            if guess_result[0] == 5:
-
-                # if auto_player.cnt in times_to_correct:
-                #     times_to_correct[auto_player.cnt] += 1
-                # else:
-                #     times_to_correct[auto_player.cnt] = 1
-                # print("game finish!, {} times".format(auto_player.cnt))
-                break
-    
-    processing_time = time.time() - time_start
-
-    times_to_correct = sorted(times_to_correct.items())
-    print(times_to_correct)
-    print("time to finish this process {} times : {}".format(repetition, processing_time))
-"""
+    main()

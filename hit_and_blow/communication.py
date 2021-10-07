@@ -69,7 +69,7 @@ class APICom:
             url_enter_room, headers=self._HEADERS, json=enter_room_json
         )
 
-        # print(result.status_code)
+        print("enter room : status code: {}".format(result.status_code))
         return result.json()
 
     def get_room(self) -> dict:
@@ -126,7 +126,7 @@ class APICom:
             url_post_hidden, headers=self._HEADERS, json=post_hidden_json
         )
 
-        # print(result.status_code)
+        print("post hidden number: status code : {}".format(result.status_code))
         return result.json()
 
     def post_guess(self, guess_number: str) -> dict:
