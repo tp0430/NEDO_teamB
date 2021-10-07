@@ -7,12 +7,9 @@
 """
 
 import tkinter as tk
-from tkinter.constants import N
 import tkinter.ttk as ttk
-
+from tkinter.constants import N
 from player import Player
-
-
 
 class Game:
     player: Player = None
@@ -23,6 +20,8 @@ class Game:
         Game.root.geometry("800x600")
         Game.root.grid_rowconfigure(0, weight=1)
         Game.root.grid_columnconfigure(0, weight=1)
+
+        Game.show_login_disp()
     
     @classmethod
     def set_player(cls, room_id: int, player_name: str, mode: int):
@@ -37,7 +36,7 @@ class Game:
 
     @classmethod
     def show_waiting_disp(cls):
-        disp = DispWaiting()
+        disp = DispRegisterNum()
         disp.show()
 
     @classmethod
@@ -55,11 +54,27 @@ class Game:
         disp = DispResult()
         disp.show()
 
-class DispLogin:
-
+class Disp:
+    """表示フレームを作るクラス、そのままでは何もない画面なので継承して使う
+    :param frame ttk.Frame: 表示フレーム
+    :func show(): フレームを最前面に持ってくる
+    """
     def __init__(self) -> None:
         self.frame = ttk.Frame(Game.root)
         self.frame.grid(row= 0, column= 0, sticky= "nsew", pady= 20)
+    
+    def show(self) -> None:
+        """オブジェクトのフレームを最前面に持ってくる
+        :param なし
+        :return: なし
+        """
+        self.frame.tkraise()
+        return
+
+class DispLogin(Disp):
+
+    def __init__(self) -> None:
+        super().__init__()
 
         label_player_name = ttk.Label(self.frame, text="プレイヤー名を入力してください")
         self.box_player_name = ttk.Entry(self.frame, width = 50)
@@ -79,11 +94,12 @@ class DispLogin:
         self.button_login = ttk.Button(self.frame, text = "GAME START", command= self.onclick)
         self.button_login.pack()
     
-    def show(self):
-        print("disp login")
-        self.frame.tkraise()
-    
     def onclick(self):
+        """ログイン画面でボタンを押された時の処理
+        playerオブジェクトを作り、入室後、自身の数字登録画面に移行
+        :param なし
+        :return: なし
+        """
         Game.set_player(
             room_id= int(self.box_room_id.get()),
             player_name= self.box_player_name.get(),
@@ -92,11 +108,10 @@ class DispLogin:
         Game.player._api_com.enter_room()
         Game.show_waiting_disp()
 
-class DispWaiting:
+class DispRegisterNum(Disp):
 
     def __init__(self) -> None:
-        self.frame = ttk.Frame(Game.root)
-        self.frame.grid(row= 0, column= 0, sticky= "nsew", pady= 20)
+        super().__init__()
 
         label = ttk.Label(self.frame, text= "あなたの番号を入力してください")
         self.box_your_num = ttk.Entry(self.frame, width = 50)
@@ -107,19 +122,29 @@ class DispWaiting:
         button_enter.pack()
     
     def onclick(self):
-        print("clicked in disp_waiting")
+        """自身の数字登録画面でEnterが押された時の処理
+        入力されている数字が正しければ、サーバに登録し、モードに応じた画面に移行
+        そうでなければ入力ボックスを空にする
+        :param なし
+        :return: なし
+        """
         if self.is_correct_num():
-            print("correct number")
-            print("my number : {}, type : {}".format(self.box_your_num.get(), type(self.box_your_num.get())))
             Game.player._api_com.post_hidden(self.box_your_num.get())
 
             if Game.player.mode:
                 Game.show_playing_auto_disp()
             else:
                 Game.show_playing_manual_disp()
+        else:
+            self.box_your_num.delete(0, tk.END)
 
     
     def is_correct_num(self):
+        """入力された数字を取得し、それが16進5桁の数字かどうか判定
+        :param なし
+        :rtype: bool
+        :return: 16進5桁の数字ならTrue, そうでなければFalse
+        """
         num = self.box_your_num.get()
         if len(num) != 5:
             return False
@@ -131,28 +156,36 @@ class DispWaiting:
                 return False
         return True
 
-    def show(self):
-        self.frame.tkraise()
 
-class DispPlayingManual:
+class DispPlayingManual(Disp):
 
     def __init__(self) -> None:
 
-        self.frame = ttk.Frame(Game.root)
-        self.frame.grid(row= 0, column= 0, sticky= "nsew", pady= 20)
+        super().__init__()
 
         label = ttk.Label(self.frame, text= "相手の数字はなんだと思う？")
         self.box_guess_num = ttk.Entry(self.frame, width= 50)
+
         label.pack()
         self.box_guess_num.pack()
 
         self.button = ttk.Button(self.frame, text= "ENTER", command= self.onclick, state= "disable")
         self.button.pack()
-        self.frame.after(1000, self.update_game_state)
+
+        # check_interval ms 事にゲームの状態を確認
+        self.check_interval = 1000
+        self.frame.after(self.check_interval, self.update_game_state)
     
     def update_game_state(self):
-
-        game_state = Game.player.get_game_state()
+        """ゲームの状態を更新
+        ゲーム進行中で自身のターンなら、Enterボタンを有効にする。
+        ゲーム進行で自分のターンでなければEnterボタンを無効にする。
+        ゲームが終了していたら、結果表示画面に移行
+        :param なし
+        :rtype: bool
+        :return: 16進5桁の数字ならTrue, そうでなければFalse
+        """
+        game_state = Game.player.get_state()
         if game_state == 2:
             if Game.player.is_my_turn():
                 self.button["state"] = tk.NORMAL
@@ -166,7 +199,11 @@ class DispPlayingManual:
     
     
     def onclick(self):
-
+        """マニュアルモードで進行中の画面でEnterボタンが押された時の処理
+        入力されている数字が正常なら、サーバに登録
+        :param なし
+        :return: なし
+        """
         if self.is_correct_num():
             guess_num = self.box_guess_num.get()
             guess_result = Game.player.post_guess_num(guess_num= guess_num)
@@ -179,6 +216,11 @@ class DispPlayingManual:
         self.box_guess_num.delete(0, tk.END)
 
     def is_correct_num(self):
+        """入力された数字を取得し、それが16進5桁の数字かどうか判定
+        :param なし
+        :rtype: bool
+        :return: 16進5桁の数字ならTrue, そうでなければFalse
+        """
         num = self.box_guess_num.get()
         if len(num) != 5:
             return False
@@ -191,10 +233,7 @@ class DispPlayingManual:
         
         return True
 
-    def show(self):
-        self.frame.tkraise()
-
-class DispPlayingAuto:
+class DispPlayingAuto(Disp):
 
     def __init__(self) -> None:
         self.frame = tk.Frame(Game.root)
@@ -203,12 +242,18 @@ class DispPlayingAuto:
         label = tk.Label(self.frame, text= "棋神降臨")
         label.pack()
 
-        self.frame.after(1000, self.update_game_state)
+        # check_interval ms 事にゲームの状態を確認
+        self.check_interval = 1000
+        self.frame.after(self.check_interval, self.update_game_state)
 
     def update_game_state(self):
-
-        game_state = Game.player.get_game_state()
-
+        """ゲームの状態の更新及び更新時の処理
+        ゲームが進行中で、自分のターンなら自動推測してサーバに登録
+        ゲームが終了していたら結果画面を表示
+        :param なし
+        :return: なし
+        """
+        game_state = Game.player.get_state()
         if game_state == 2 and Game.player.is_my_turn():
             guess_num = Game.player.auto_guess()
             guess_result = Game.player.post_guess_num(guess_num)
@@ -219,12 +264,10 @@ class DispPlayingAuto:
         elif game_state == 3:
             Game.show_reslut_disp()
         
-        self.frame.after(1000, self.update_game_state)
-    
-    def show(self):
-        self.frame.tkraise()
+        self.frame.after(self.check_interval, self.update_game_state)
 
-class DispResult:
+
+class DispResult(Disp):
 
     def __init__(self) -> None:
         self.frame = tk.Frame(Game.root)
@@ -239,11 +282,3 @@ class DispResult:
         else:
             label = tk.Label(self.frame, text= "ROSE")
         label.pack()
-    
-    def show(self):
-        self.frame.tkraise()
-
-
-
-if __name__ == "__main__":
-    pass
