@@ -7,6 +7,7 @@
 """
 
 import tkinter as tk
+from tkinter.constants import N
 import tkinter.ttk as ttk
 
 from player import Player
@@ -16,7 +17,6 @@ from player import Player
 class Game:
     player: Player = None
     root: tk.Tk = tk.Tk()
-
 
     @classmethod
     def init(cls) -> None:
@@ -29,9 +29,33 @@ class Game:
         Game.player = Player(room_id= room_id, player_name= player_name, mode= mode)
 
         print("player info: room id:{}, name:{}, mode{}".format(room_id, player_name, mode))
+    
+    @classmethod
+    def show_login_disp(cls):
+        disp = DispLogin()
+        disp.show()
 
+    @classmethod
+    def show_waiting_disp(cls):
+        disp = DispWaiting()
+        disp.show()
 
-class DispLogin(Game):
+    @classmethod
+    def show_playing_manual_disp(cls):
+        disp = DispPlayingManual()
+        disp.show()
+
+    @classmethod
+    def show_playing_auto_disp(cls):
+        disp = DispPlayingAuto()
+        disp.show()
+
+    @classmethod
+    def show_reslut_disp(cls):
+        disp = DispResult()
+        disp.show()
+
+class DispLogin:
 
     def __init__(self) -> None:
         self.frame = ttk.Frame(Game.root)
@@ -54,8 +78,6 @@ class DispLogin(Game):
 
         self.button_login = ttk.Button(self.frame, text = "GAME START", command= self.onclick)
         self.button_login.pack()
-
-        self.next_disp = DispWaiting()
     
     def show(self):
         print("disp login")
@@ -67,9 +89,10 @@ class DispLogin(Game):
             player_name= self.box_player_name.get(),
             mode= int(self.box_mode.get())
             )
-        self.next_disp.show()
+        Game.player._api_com.enter_room()
+        Game.show_waiting_disp()
 
-class DispWaiting(Game):
+class DispWaiting:
 
     def __init__(self) -> None:
         self.frame = ttk.Frame(Game.root)
@@ -82,19 +105,19 @@ class DispWaiting(Game):
 
         button_enter = ttk.Button(self.frame, text= "ENTER", command= self.onclick)
         button_enter.pack()
-
-        self.next_disp = DispPlaying()
     
     def onclick(self):
         print("clicked in disp_waiting")
         if self.is_correct_num():
             print("correct number")
-            Game.player._api_com.enter_room()
             print("my number : {}, type : {}".format(self.box_your_num.get(), type(self.box_your_num.get())))
             Game.player._api_com.post_hidden(self.box_your_num.get())
 
-            self.next_disp.show()
-            print("show next diplay")
+            if Game.player.mode:
+                Game.show_playing_auto_disp()
+            else:
+                Game.show_playing_manual_disp()
+
     
     def is_correct_num(self):
         num = self.box_your_num.get()
@@ -111,11 +134,9 @@ class DispWaiting(Game):
     def show(self):
         self.frame.tkraise()
 
-class DispPlaying(Game):
+class DispPlayingManual:
 
     def __init__(self) -> None:
-
-        self.is_shown = False
 
         self.frame = ttk.Frame(Game.root)
         self.frame.grid(row= 0, column= 0, sticky= "nsew", pady= 20)
@@ -127,35 +148,31 @@ class DispPlaying(Game):
 
         self.button = ttk.Button(self.frame, text= "ENTER", command= self.onclick, state= "disable")
         self.button.pack()
-        Game.root.after(1000, self.update_button_state)
-        Game.root.after(1000, self.update_game_state)
+        self.frame.after(1000, self.update_game_state)
     
     def update_game_state(self):
-        if self.is_shown:
 
-            if Game.player.check_game_state() == 3:
-                print("finish!")
-        Game.root.after(1000, self.update_game_state)
-    
-    def update_button_state(self):
-
-        if self.is_shown:
-
-            is_my_turn = Game.player.is_my_turn()
-
-            if is_my_turn:
+        game_state = Game.player.get_game_state()
+        if game_state == 2:
+            if Game.player.is_my_turn():
                 self.button["state"] = tk.NORMAL
-
             else:
                 self.button["state"] = tk.DISABLED
+        elif game_state == 3:
+            Game.show_reslut_disp()
 
-        Game.root.after(1000, self.update_button_state)
+
+        self.frame.after(1000, self.update_game_state)
+    
     
     def onclick(self):
 
         if self.is_correct_num():
             guess_num = self.box_guess_num.get()
-            Game.player.post_guess_num(guess_num= guess_num)
+            guess_result = Game.player.post_guess_num(guess_num= guess_num)
+
+            label_new_guess = tk.Label(self.frame, text= "{} : {}".format(guess_num, guess_result))
+            label_new_guess.pack()
         else:
             print("ERROR : unexpected number")
         
@@ -176,8 +193,55 @@ class DispPlaying(Game):
 
     def show(self):
         self.frame.tkraise()
-        self.is_shown = True
+
+class DispPlayingAuto:
+
+    def __init__(self) -> None:
+        self.frame = tk.Frame(Game.root)
+        self.frame.grid(row= 0, column= 0, sticky= "nsew", pady= 20)
+
+        label = tk.Label(self.frame, text= "棋神降臨")
+        label.pack()
+
+        self.frame.after(1000, self.update_game_state)
+
+    def update_game_state(self):
+
+        game_state = Game.player.get_game_state()
+
+        if game_state == 2 and Game.player.is_my_turn():
+            guess_num = Game.player.auto_guess()
+            guess_result = Game.player.post_guess_num(guess_num)
+
+            label_new_guess = tk.Label(self.frame, text= "{} : {}".format(guess_num, guess_result))
+            label_new_guess.pack()
+
+        elif game_state == 3:
+            Game.show_reslut_disp()
         
+        self.frame.after(1000, self.update_game_state)
+    
+    def show(self):
+        self.frame.tkraise()
+
+class DispResult:
+
+    def __init__(self) -> None:
+        self.frame = tk.Frame(Game.root)
+        self.frame.grid(row= 0, column= 0, sticky= "nsew", pady= 20)
+
+        label : tk.Label
+        winner = Game.player.get_winner()
+        if winner == Game.player._player_name:
+            label = tk.Label(self.frame, text= "WIN!")
+        elif winner == None:
+            label = tk.Label(self.frame, text= "DRAW")
+        else:
+            label = tk.Label(self.frame, text= "ROSE")
+        label.pack()
+    
+    def show(self):
+        self.frame.tkraise()
 
 
 
