@@ -6,19 +6,23 @@
     * Created by: KENTA Mizuhara
 """
 
-from player import Player
+
+import tkinter as tk
+import tkinter.ttk as ttk
+
+from sys import api_version
+from display import DispLogin
+from display import DispRegisterNum
+from display import Game
+
+
 
 
 def main():
-    player_name = input("enter player name: ")
-    room_id = int(input("enter room ID: "))
-    player_type = input("enter player type (manual/auto): ")
-    if player_type == "manual":
-        game_player = Player(room_id=room_id, player_name=player_name)
-    elif player_type == "auto":
-        game_player = Player(room_id=room_id, player_name=player_name, mode= 1)
-    game_player.play_game()
+    Game.init()
+    Game.root.mainloop()
 
 
 if __name__ == "__main__":
+
     main()

@@ -1,9 +1,13 @@
 import random
 import time
+from tkinter.constants import NO
 from typing import Tuple, List
 
 from communication import APICom
 from auto_guess import AutoGuess
+
+import tkinter as tk
+import tkinter.ttk as ttk
 
 
 ANS_LEN: int = 5
@@ -13,13 +17,12 @@ MAX_ANS: int = 15
 
 class Player:
     """プレイ用モジュール。
-    :param bool _is_start_game: ゲームが開始できているか。
-    :param bool _is_end_game: ゲームが終了しているか。
-    :param str _player_name: プレーヤー名
     :param int _room_id: ルームID
-    :param str _hidden_number: 相手が当てる数字
+    :param str _player_name: プレーヤー名
     :param APICom _api_com: APIComクラスの通信用オブジェクト
     :param int mode: 0->マニュアルモード(デフォルト), 1->自動対戦モード
+    :param List[Tuple(str, Tuple(int, int))] guess_history: 対戦履歴, 初期値は[None, None]
+    :param auto_guesser AutoGuess: 自動推測用オブジェクト, modeが0ならNone
     """
 
     def __init__(self, room_id: int, player_name: str, mode: int = 0) -> None:
@@ -29,163 +32,74 @@ class Player:
         :rtype: None
         :return: なし
         """
-        self._is_start_game: bool = False
-        self._is_end_game: bool = False
+
         self._room_id: int = room_id        
         self._player_name: str = player_name
-        self._hidden_number: str = input("enter hidden number : ")
         self._api_com: APICom = APICom(
             player_name=self._player_name, room_id=self._room_id
         )
         self.mode: int = mode
-            
+        self.guess_history: List[Tuple(str, Tuple(int, int))] = [(None, None)]
+        if mode:
+            self.auto_guesser = AutoGuess()
 
-    def _init_game(self) -> None:
-        """ゲーム開始の作業をひとまとめにした関数。
-        ゲーム開始が確認されたら、self._start_gameがTrueになる。
-        :param: なし
-        :rtype: None
-        :return: なし
+    def is_my_turn(self) -> bool:
+        """自分のターンかどうかを返す
+        :param なし
+        :rtype: bool
+        :return: 自分のターンならTrue, 相手のターンならFalse
         """
-
-        _ = self._api_com.enter_room()
-        while self._api_com.get_room()["state"] == 1:
-            print("now waiting opponent")
-            time.sleep(5)
-        self._api_com.post_hidden(hidden_number=self._hidden_number)
-        self._is_start_game = True
-        return
-
-    def _proceed_game_manual(self) -> None:
-        """マニュアルモードでのゲーム中の操作をひとまとめにした関数。
-        ゲーム終了が確認されると、self._end_gameがTrueになる。
-        :param: なし
-        :rtype: None
-        :return: なし
-        """
-
-        guess_num: str = None
-        guess_result: Tuple[int, int] = None
-        while self._api_com.get_table()["state"] == 2:
-
-            table = self._api_com.get_table()
-            if table["now_player"] == self._player_name:
-
-                guess_num = input("enter guess number : ")
-                self._api_com.post_guess(guess_number=guess_num)
-                latest_result = self._api_com.get_table()["table"][-1]
-                guess_result = (latest_result["hit"], latest_result["blow"])
-
-                print("{} : {}".format(guess_num, guess_result))
-
-            time.sleep(1)
-        self._is_end_game = True
-        return
-
-    def _proceed_game_auto(self) -> None:
-        """オートモードでのゲーム中の操作をひとまとめにした関数。
-        ゲーム終了が確認されると、self._end_gameがTrueになる。
-        :param: なし
-        :rtype: None
-        :return: なし
-        """
-
-        guess_program = AutoGuess()
-
-        guess_num: str = None
-        guess_result: Tuple[int, int] = None
-        while self._api_com.get_table()["state"] == 2:
-
-            table = self._api_com.get_table()
-            if table["now_player"] == self._player_name:
-
-                guess_num = guess_program.guess(guess_num, guess_result)
-                self._api_com.post_guess(guess_number=guess_num)
-                latest_result = self._api_com.get_table()["table"][-1]
-                guess_result = (latest_result["hit"], latest_result["blow"])
-
-                print("{} : {}".format(guess_num, guess_result))
-
-            time.sleep(1)
-        self._is_end_game = True
-        return
-
-    def _show_result(self) -> None:
-        """対戦結果を表示する。
-        :param: なし
-        :rtype: None
-        :return: なし
-        """
-
-        winner = self._api_com.get_table()["winner"]
-        if winner == self._player_name:
-            print("YOU WIN!")
-        elif winner == None:
-            print("DRAW")
-        else:
-            print("YOU LOSE")
-        return
-
-    def play_game(self) -> None:
-        """ゲーム開始から終了までの一連の流れ
-        :param: なし
-        :rtype: None
-        :return: なし
-        """
-        self._init_game()
-        if self._is_start_game == True:
-            print("GAME START!")
-
-            if self.mode:
-                self._proceed_game_auto()
-            else:
-                self._proceed_game_manual()
-            if self._is_end_game == True:
-                self._show_result()
-                return
-
-
-
-
-"""
-テストはtestsの中に書く
-
-# 性能テスト
-if __name__ == "__main__":
-
-    repetition = 100
-    times_to_correct = {}
-
-    # 処理速度計測
-    time_start = time.time()
-
-    for i in range(repetition):
-        auto_player = AutoPlayer()
-        ans = make_number_random()
-        # print("ans---{}".format(ans))
-
-        guess_num = None
-        guess_result = None
-        while 1:
-            
-
-            guess_num = auto_player.guess(guess_num, guess_result)
-            guess_result = hit_and_blow(guess_num, ans)
-            # print("{} : {}".format(guess_num, guess_result))
-            # print(len(auto_player.possible_answers))
-
-            if guess_result[0] == 5:
-
-                # if auto_player.cnt in times_to_correct:
-                #     times_to_correct[auto_player.cnt] += 1
-                # else:
-                #     times_to_correct[auto_player.cnt] = 1
-                # print("game finish!, {} times".format(auto_player.cnt))
-                break
+        return (self._api_com.get_table()["state"] == 2 ) and (self._api_com.get_table()["now_player"] == self._player_name)
     
-    processing_time = time.time() - time_start
+    def get_state(self) -> int:
+        """ゲームの状態を取得
+        :param なし
+        :rtype: int
+        :return: 1: ゲーム未開始 , 2: 進行中 , 3: ゲーム終了
+        """        
+        return self._api_com.get_table()["state"]
+    
+    def auto_guess(self) -> str:
+        """自動推測結果を返す
+        :param なし
+        :rtype: str
+        :return: 自動推測した数字
+        """   
+        return self.auto_guesser.guess(self.guess_history[-1][0], self.guess_history[-1][1])
+    
+    #戻り値悩み中、boolで返すのが後々楽そうなので要編集
+    def enter_room(self) -> bool:
+        """対戦部屋に入室
+        :param なし
+        :rtype: bool
+        :return: 部屋に入れたかどうか
+        """  
+        return self._api_com.enter_room()
 
-    times_to_correct = sorted(times_to_correct.items())
-    print(times_to_correct)
-    print("time to finish this process {} times : {}".format(repetition, processing_time))
-"""
+
+    def post_guess_num(self, guess_num: str) -> Tuple[int, int]:
+        """推測した数字をサーバに上げる
+        :param　str: 推測した数字
+        :rtype: Tuple[int, int]
+        :return: 推測結果[hit, blow]
+        """  
+        guess_result: Tuple[int, int] = None
+
+        self._api_com.post_guess(guess_number=guess_num)
+        latest_result = self._api_com.get_table()["table"][-1]
+        guess_result = (latest_result["hit"], latest_result["blow"])
+
+        print("{} : {}".format(guess_num, guess_result))
+
+        self.guess_history.append((guess_num, guess_result))
+
+        return guess_result
+    
+    def get_winner(self):
+        """勝者を取得
+        :param　str: なし
+        :rtype: str
+        :return: 勝者のplayer_name
+        """  
+        return self._api_com.get_table()["winner"]
+
