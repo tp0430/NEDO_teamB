@@ -236,8 +236,7 @@ class DispPlayingManual(Disp):
 class DispPlayingAuto(Disp):
 
     def __init__(self) -> None:
-        self.frame = tk.Frame(Game.root)
-        self.frame.grid(row= 0, column= 0, sticky= "nsew", pady= 20)
+        super().__init__()
 
         label = tk.Label(self.frame, text= "棋神降臨")
         label.pack()
@@ -270,8 +269,7 @@ class DispPlayingAuto(Disp):
 class DispResult(Disp):
 
     def __init__(self) -> None:
-        self.frame = tk.Frame(Game.root)
-        self.frame.grid(row= 0, column= 0, sticky= "nsew", pady= 20)
+        super().__init__()
 
         label : tk.Label
         winner = Game.player.get_winner()
