@@ -11,8 +11,6 @@ class AutoGuess:
     """
     def __init__(self) -> None:
         self._possible_answers: List[str] = self._make_all_number_list()
-        self._guess_history: List[str] = []
-        self._guess_result_history: List[Tuple[int, int]] = []
         self._cnt: int = 0
 
     def _make_all_number_list(self) -> List[str]:
@@ -80,16 +78,12 @@ class AutoGuess:
         :return int: 減らした後の候補数
         """
 
-        if guess_num == None:
-            guess_num = self._guess_history[-1]
-        if guess_result == None:
-            guess_result = self._guess_result_history[-1]
-
-        self._possible_answers = [
-            item
-            for item in self._possible_answers
-            if guess_result == self._hit_and_blow(guess=guess_num, ans=item)
-        ]
+        if guess_num != None:
+            self._possible_answers = [
+                item
+                for item in self._possible_answers
+                if guess_result == self._hit_and_blow(guess=guess_num, ans=item)
+            ]
 
         return len(self._possible_answers)
 
@@ -105,10 +99,6 @@ class AutoGuess:
 
         self._cnt += 1
 
-        if guess_num_prev != None:
-            self._guess_history.append(guess_num_prev)
-            self._guess_result_history.append(guess_result_prev)
-
-            self._narrow_guess_num_list()
+        self._narrow_guess_num_list(guess_num= guess_num_prev, guess_result= guess_result_prev)
 
         return self._select_guess_num()
