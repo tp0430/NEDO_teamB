@@ -162,7 +162,7 @@ class DispPlaying(Game):
         self.box_guess_num.delete(0, tk.END)
 
     def is_correct_num(self):
-        num = self.box_your_num.get()
+        num = self.box_guess_num.get()
         if len(num) != 5:
             return False
         for element in num:
