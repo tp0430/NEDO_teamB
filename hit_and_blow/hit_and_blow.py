@@ -7,12 +7,6 @@
 """
 
 
-import tkinter as tk
-import tkinter.ttk as ttk
-
-from sys import api_version
-from display import DispLogin
-from display import DispRegisterNum
 from display import Game
 
 
