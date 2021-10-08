@@ -65,7 +65,7 @@ class Disp:
     def __init__(self) -> None:
         self.frame = ttk.Frame(Game.root)
         self.frame.grid(row= 0, column= 0, sticky= "nsew", pady= 0)
-        self.bg_image = tk.PhotoImage(file = r"img\bg.png").zoom(3, 3)
+        self.bg_image = tk.PhotoImage(file = r"img\bg.png")
 
     def show(self) -> None:
         """オブジェクトのフレームを最前面に持ってくる
