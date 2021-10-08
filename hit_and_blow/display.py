@@ -10,18 +10,21 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter.constants import N
 from player import Player
+from typing import List
 
 class Game:
     player: Player = None
-    root: tk.Tk = tk.Tk()
+    root: tk.Tk
 
     @classmethod
     def init(cls) -> None:
+        Game.root = tk.Tk()
         Game.root.geometry("800x600")
         Game.root.grid_rowconfigure(0, weight=1)
         Game.root.grid_columnconfigure(0, weight=1)
 
         Game.show_login_disp()
+
     
     @classmethod
     def set_player(cls, room_id: int, player_name: str, mode: int):
@@ -233,7 +236,7 @@ class DispPlayingManual(Disp):
         
         return True
 
-class DispPlayingAuto(Disp):
+class DispPlayingAuto:
 
     def __init__(self) -> None:
         super().__init__()
@@ -280,3 +283,23 @@ class DispResult(Disp):
         else:
             label = tk.Label(self.frame, text= "ROSE")
         label.pack()
+
+def disp_test():
+    root = tk.Tk()
+    root.geometry("800x600")
+    root.grid_rowconfigure(0, weight=1)
+    root.grid_columnconfigure(0, weight=1)
+
+    frame = tk.Frame(root)
+    frame.grid(row= 0, column= 0, sticky= "nsew", pady= 20)
+
+    buttons: List[tk.Button] = [None] * 16
+    for i in range(16):
+        buttons[i] = tk.Button(frame, width= 8, height= 4, text= "b{}".format(hex(i)[2:]), image= "img/kaji_kasaihouchiki_button.png")
+        buttons[i].place(x= int(i % 4) * 90, y= int(i / 4) * 90)
+
+    root.mainloop()
+
+if __name__ == "__main__":
+
+    disp_test()
