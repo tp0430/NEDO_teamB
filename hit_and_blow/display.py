@@ -293,9 +293,16 @@ def disp_test():
     frame = tk.Frame(root)
     frame.grid(row= 0, column= 0, sticky= "nsew", pady= 20)
 
+    button_image = tk.PhotoImage(file= "img\kaji_kasaihouchiki_button.png").subsample(4, 4)
     buttons: List[tk.Button] = [None] * 16
     for i in range(16):
-        buttons[i] = tk.Button(frame, width= 8, height= 4, text= "b{}".format(hex(i)[2:]), image= "img/kaji_kasaihouchiki_button.png")
+        buttons[i] = tk.Button(
+            frame,
+            width= 80,
+            height= 80,
+            image= button_image,
+            text= "b{}".format(hex(i)[2:]))
+        
         buttons[i].place(x= int(i % 4) * 90, y= int(i / 4) * 90)
 
     root.mainloop()
