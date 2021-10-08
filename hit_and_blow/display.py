@@ -64,8 +64,9 @@ class Disp:
     """
     def __init__(self) -> None:
         self.frame = ttk.Frame(Game.root)
-        self.frame.grid(row= 0, column= 0, sticky= "nsew", pady= 20)
-    
+        self.frame.grid(row= 0, column= 0, sticky= "nsew", pady= 0)
+        self.bg_image = tk.PhotoImage(file = r"img\bg.png").zoom(3, 3)
+
     def show(self) -> None:
         """オブジェクトのフレームを最前面に持ってくる
         :param なし
@@ -78,6 +79,14 @@ class DispLogin(Disp):
 
     def __init__(self) -> None:
         super().__init__()
+
+        label_bg = tk.Label(
+            master= self.frame,
+            image= self.bg_image,
+            width= 800,
+            height= 600
+        )
+        label_bg.place(x= 0, y= 0)
 
         label_player_name = ttk.Label(self.frame, text="プレイヤー名を入力してください")
         self.box_player_name = ttk.Entry(self.frame, width = 50)
