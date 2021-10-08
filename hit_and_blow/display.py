@@ -290,8 +290,8 @@ def disp_test():
     root.grid_rowconfigure(0, weight=1)
     root.grid_columnconfigure(0, weight=1)
 
-    frame = tk.Frame(root)
-    frame.grid(row= 0, column= 0, sticky= "nsew", pady= 20)
+    frame = tk.Frame(root, bg="#555")
+    frame.grid(row= 0, column= 0, sticky= "nsew")
 
     button_image = tk.PhotoImage(file= "img\kaji_kasaihouchiki_button.png").subsample(4, 4)
     buttons: List[tk.Button] = [None] * 16
@@ -303,7 +303,9 @@ def disp_test():
             image= button_image,
             text= "b{}".format(hex(i)[2:]))
         
-        buttons[i].place(x= int(i % 4) * 90, y= int(i / 4) * 90)
+        buttons[i].place(x= int(i % 4) * 90 + 430, y= int(i / 4) * 90 + 200)
+    
+    
 
     root.mainloop()
 
