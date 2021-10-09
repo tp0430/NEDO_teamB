@@ -11,6 +11,7 @@ import tkinter.ttk as ttk
 from tkinter.constants import N, X, Y
 from player import Player
 from typing import List
+from PIL import Image, ImageTk
 
 class Game:
     player: Player = None
@@ -247,10 +248,33 @@ class DispPlayingManual(Disp):
             width=150, height=33, 
             image= self.send_image, 
             command=self.onclick, 
-            state= tk.DISABLED)
+            state= tk.NORMAL)
         self.button.place(x= 577, y= 531)
 
+        self.canvas_you_guess = tk.Canvas(
+            self.frame, 
+            width= 120,
+            height= 300, 
+            borderwidth= 0, 
+            bg= "#3fe000"
+        )
+        self.canvas_you_guess.place(anchor= tk.CENTER, x= 162, y= 335)
+        self.canvas_you_response = tk.Canvas(
+            self.frame, 
+            width= 120,
+            height= 300, 
+            borderwidth= 0, 
+            bg= "#3fe000"
+        )
+        self.canvas_you_response.place(anchor= tk.CENTER, x= 300, y= 335)
 
+        self.y_interval = 20
+        self.y_you_guess = 13
+        self.y_you_responce = 13
+
+        self.img_response = ImageTk.PhotoImage(
+            Image.open(os.path.join("img", "response", "sample_response.png"))
+            )
         # check_interval ms 事にゲームの状態を確認
         self.check_interval = 1000
         self.frame.after(self.check_interval, self.update_game_state)
@@ -285,10 +309,24 @@ class DispPlayingManual(Disp):
         """
         if self.is_correct_num():
             guess_num = self.box_guess_num.get()
-            guess_result = Game.player.post_guess_num(guess_num= guess_num)
+            self.canvas_you_guess.create_text(
+                60, 
+                self.y_you_guess, 
+                text= guess_num, 
+                fill= "#ffffff", 
+                font= ("", 15, "bold")
+                )
+            self.y_you_guess += self.y_interval
 
-            label_new_guess = tk.Label(self.frame, text= "{} : {}".format(guess_num, guess_result))
-            label_new_guess.pack()
+            guess_result = Game.player.post_guess_num(guess_num= guess_num)
+            self.canvas_you_response.create_image(
+                60,
+                self.y_you_responce,
+                image= self.img_response
+            )
+            self.y_you_responce += self.y_interval
+
+
         else:
             print("ERROR : unexpected number")
         
