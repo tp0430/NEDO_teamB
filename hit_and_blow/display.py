@@ -222,7 +222,6 @@ class DispRegisterNum(Disp):
 class DispPlayingManual(Disp):
 
     def __init__(self) -> None:
-
         super().__init__()
         self.bg_image = tk.PhotoImage(file= os.path.join("img", "back", "match.png"))
         label_bg = tk.Label(
@@ -251,12 +250,18 @@ class DispPlayingManual(Disp):
             state= tk.NORMAL)
         self.button.place(x= 577, y= 531)
 
+
+        self.y_interval = 20
+        self.y_you_guess = 13
+        self.y_you_responce = 13
+        self.y_opponent_guess = 13
+        self.y_opponent_response = 13
         self.canvas_you_guess = tk.Canvas(
             self.frame, 
             width= 120,
             height= 300, 
             borderwidth= 0, 
-            bg= "#3fe000"
+            bg= "#20c080"
         )
         self.canvas_you_guess.place(anchor= tk.CENTER, x= 162, y= 335)
         self.canvas_you_response = tk.Canvas(
@@ -264,17 +269,37 @@ class DispPlayingManual(Disp):
             width= 120,
             height= 300, 
             borderwidth= 0, 
-            bg= "#3fe000"
+            bg= "#20c080"
         )
-        self.canvas_you_response.place(anchor= tk.CENTER, x= 300, y= 335)
+        self.canvas_you_response.place(anchor= tk.CENTER, x= 315, y= 335)
 
-        self.y_interval = 20
-        self.y_you_guess = 13
-        self.y_you_responce = 13
+        self.canvas_opponent_guess = tk.Canvas(
+            self.frame, 
+            width= 120, 
+            height= 300, 
+            borderwidth= 0, 
+            bg= "#40c0a0"
+        )
+        self.canvas_opponent_guess.place(anchor= tk.CENTER, x= 495, y= 335)
 
+        self.canvas_opponent_response = tk.Canvas(
+            self.frame, 
+            width= 120, 
+            height= 300, 
+            borderwidth= 0, 
+            bg= "#40c0a0"
+        )
+        self.canvas_opponent_response.place(anchor= tk.CENTER, x= 645, y= 335)
+
+        # ここで、15枚、レスポンスに応じた画像を用意して、辞書形式にまとめておく
         self.img_response = ImageTk.PhotoImage(
             Image.open(os.path.join("img", "response", "sample_response.png"))
             )
+        
+        # 相手のテーブル作成用
+        self.cnt_opponent_guess = 0
+    
+
         # check_interval ms 事にゲームの状態を確認
         self.check_interval = 1000
         self.frame.after(self.check_interval, self.update_game_state)
@@ -291,6 +316,28 @@ class DispPlayingManual(Disp):
         game_state = Game.player.get_state()
         if game_state == 2:
             if Game.player.is_my_turn():
+
+                opponent_table = Game.player.get_opponent_table()
+                if self.cnt_opponent_guess < len(opponent_table):
+                    latest_opponent_guess = opponent_table[-1]["guess"]
+                    latest_opponent_res = (opponent_table[-1]["hit"], opponent_table[-1]["blow"])
+
+                    self.canvas_opponent_guess.create_text(
+                        60, 
+                        self.y_opponent_guess, 
+                        text= latest_opponent_guess, 
+                        fill= "#ffffff", 
+                        font= ("", 15, "bold")
+                    )
+                    self.y_opponent_guess += self.y_interval
+                    self.canvas_opponent_response.create_image(
+                        60, 
+                        self.y_opponent_response, 
+                        image= self.img_response
+                    )
+                    self.y_opponent_response += self.y_interval
+
+                    self.cnt_opponent_guess += 1
                 self.button["state"] = tk.NORMAL
             else:
                 self.button["state"] = tk.DISABLED
@@ -363,8 +410,57 @@ class DispPlayingAuto(Disp):
             width=800,
             height=600
         )
-        label_bg.place(x=0, y=0)        
+        label_bg.place(x=0, y=0)     
 
+
+        self.y_interval = 20
+        self.y_you_guess = 13
+        self.y_you_responce = 13
+        self.y_opponent_guess = 13
+        self.y_opponent_response = 13
+        self.canvas_you_guess = tk.Canvas(
+            self.frame, 
+            width= 120,
+            height= 300, 
+            borderwidth= 0, 
+            bg= "#20c080"
+        )
+        self.canvas_you_guess.place(anchor= tk.CENTER, x= 162, y= 335)
+        self.canvas_you_response = tk.Canvas(
+            self.frame, 
+            width= 120,
+            height= 300, 
+            borderwidth= 0, 
+            bg= "#20c080"
+        )
+        self.canvas_you_response.place(anchor= tk.CENTER, x= 315, y= 335)
+
+        self.canvas_opponent_guess = tk.Canvas(
+            self.frame, 
+            width= 120, 
+            height= 300, 
+            borderwidth= 0, 
+            bg= "#40c0a0"
+        )
+        self.canvas_opponent_guess.place(anchor= tk.CENTER, x= 495, y= 335)
+
+        self.canvas_opponent_response = tk.Canvas(
+            self.frame, 
+            width= 120, 
+            height= 300, 
+            borderwidth= 0, 
+            bg= "#40c0a0"
+        )
+        self.canvas_opponent_response.place(anchor= tk.CENTER, x= 645, y= 335)
+
+        # ここで、15枚、レスポンスに応じた画像を用意して、辞書形式にまとめておく
+        self.img_response = ImageTk.PhotoImage(
+            Image.open(os.path.join("img", "response", "sample_response.png"))
+            )
+
+        # 相手のテーブル作成用
+        self.cnt_opponent_guess = 0
+        
         # check_interval ms 事にゲームの状態を確認
         self.check_interval = 1000
         self.frame.after(self.check_interval, self.update_game_state)
@@ -378,11 +474,46 @@ class DispPlayingAuto(Disp):
         """
         game_state = Game.player.get_state()
         if game_state == 2 and Game.player.is_my_turn():
-            guess_num = Game.player.auto_guess()
-            guess_result = Game.player.post_guess_num(guess_num)
 
-            label_new_guess = tk.Label(self.frame, text= "{} : {}".format(guess_num, guess_result))
-            label_new_guess.pack()
+            opponent_table = Game.player.get_opponent_table()
+            if self.cnt_opponent_guess < len(opponent_table):
+                latest_opponent_guess = opponent_table[-1]["guess"]
+                latest_opponent_res = (opponent_table[-1]["hit"], opponent_table[-1]["blow"])
+
+                self.canvas_opponent_guess.create_text(
+                    60, 
+                    self.y_opponent_guess, 
+                    text= latest_opponent_guess, 
+                    fill= "#ffffff", 
+                    font= ("", 15, "bold")
+                )
+                self.y_opponent_guess += self.y_interval
+                self.canvas_opponent_response.create_image(
+                    60, 
+                    self.y_opponent_response, 
+                    image= self.img_response
+                )
+                self.y_opponent_response += self.y_interval
+
+                self.cnt_opponent_guess += 1
+            
+            guess_num = Game.player.auto_guess()
+            self.canvas_you_guess.create_text(
+                60, 
+                self.y_you_guess, 
+                text= guess_num, 
+                fill= "#ffffff", 
+                font= ("", 15, "bold")
+                )
+            self.y_you_guess += self.y_interval
+
+            guess_result = Game.player.post_guess_num(guess_num)
+            self.canvas_you_response.create_image(
+                60,
+                self.y_you_responce,
+                image= self.img_response
+            )
+            self.y_you_responce += self.y_interval
 
         elif game_state == 3:
             Game.show_reslut_disp()
