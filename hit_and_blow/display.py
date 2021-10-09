@@ -5,10 +5,10 @@
     * Created on: September 22
     * Created by: KENTA Mizuhara
 """
-
+import os
 import tkinter as tk
 import tkinter.ttk as ttk
-from tkinter.constants import N
+from tkinter.constants import N, X, Y
 from player import Player
 from typing import List
 
@@ -64,8 +64,11 @@ class Disp:
     """
     def __init__(self) -> None:
         self.frame = ttk.Frame(Game.root)
-        self.frame.grid(row= 0, column= 0, sticky= "nsew", pady= 0)
-        self.bg_image = tk.PhotoImage(file = r"img\bg.png")
+        self.frame.grid(row=0, column=0, sticky="nsew", pady=0)
+        self.bg_image: tk.PhotoImage
+        self.play_image = tk.PhotoImage(file=r"img\button\PLAY.png")
+        self.start_image = tk.PhotoImage(file= os.path.join("img", "button", "START.png"))
+        self.send_image = tk.PhotoImage(file= os.path.join("img", "button", "SEND.png"))
 
     def show(self) -> None:
         """オブジェクトのフレームを最前面に持ってくる
@@ -79,44 +82,71 @@ class DispLogin(Disp):
 
     def __init__(self) -> None:
         super().__init__()
-
+        self.bg_image = tk.PhotoImage(file= os.path.join("img", "back", "login.png"))
+        
         label_bg = tk.Label(
-            master= self.frame,
-            image= self.bg_image,
-            width= 800,
-            height= 600
+            master=self.frame,
+            image=self.bg_image,
+            width=800,
+            height=600
         )
-        label_bg.place(x= 0, y= 0)
+        label_bg.place(x=0, y=0)
 
-        label_player_name = ttk.Label(self.frame, text="プレイヤー名を入力してください")
-        self.box_player_name = ttk.Entry(self.frame, width = 50)
-        label_player_name.pack()
-        self.box_player_name.pack()
+        self.button_login = tk.Button(
+            self.frame, 
+            highlightbackground="#ffffff", 
+            width=166, height=33, 
+            image=self.play_image, 
+            command=self.onclick)
 
-        label_room_id = ttk.Label(self.frame, text="部屋番号を入力してください")
-        self.box_room_id = ttk.Entry(self.frame, width = 50)
-        label_room_id.pack()
-        self.box_room_id.pack()
+        self.button_login.place(anchor="c", x=292, y=493)
 
-        label_mode = ttk.Label(self.frame, text= "モードを選択(auto: 1 / manual: 0)")
-        self.box_mode = ttk.Entry(self.frame, width= 50)
-        label_mode.pack()
-        self.box_mode.pack()
+        label_player_name = ttk.Label(
+            self.frame, text="プレイヤー名を入力してください", background="white"
+        )
+        self.box_player_name = ttk.Entry(self.frame, width=30)
+        label_player_name.place(anchor="c", x=292, y=250)
+        self.box_player_name.place(anchor="c", x=292, y=280)
 
-        self.button_login = ttk.Button(self.frame, text = "GAME START", command= self.onclick)
-        self.button_login.pack()
-    
+        label_room_id = ttk.Label(self.frame, text="部屋番号を入力してください", background="white")
+        self.box_room_id = ttk.Entry(self.frame, width=30)
+        label_room_id.place(anchor="c", x=292, y=330)
+        self.box_room_id.place(anchor="c", x=292, y=360)
+
+        label_mode = ttk.Label(
+            self.frame, text="モードを選択(auto: 1 / manual: 0)", background="white"
+        )
+        self.box_mode = ttk.Entry(self.frame, width=30)
+        label_mode.place(anchor="c", x=292, y=410)
+        self.box_mode.place(anchor="c", x=292, y=440)
+
+        
+
     def onclick(self):
         """ログイン画面でボタンを押された時の処理
         playerオブジェクトを作り、入室後、自身の数字登録画面に移行
         :param なし
         :return: なし
         """
+
+        room_id: int
+        mode: int
+        try:
+            room_id = int(self.box_room_id.get())
+            mode = int(self.box_mode.get())
+
+            if mode != 0 and mode != 1:
+                raise ValueError
+        except ValueError:
+            self.box_room_id.delete(0, tk.END)
+            self.box_mode.delete(0, tk.END)
+            return
+        
         Game.set_player(
-            room_id= int(self.box_room_id.get()),
-            player_name= self.box_player_name.get(),
-            mode= int(self.box_mode.get())
-            )
+            room_id= room_id,
+            player_name=self.box_player_name.get(),
+            mode= mode,
+        )
         Game.player._api_com.enter_room()
         Game.show_waiting_disp()
 
@@ -125,14 +155,32 @@ class DispRegisterNum(Disp):
     def __init__(self) -> None:
         super().__init__()
 
-        label = ttk.Label(self.frame, text= "あなたの番号を入力してください")
-        self.box_your_num = ttk.Entry(self.frame, width = 50)
-        label.pack()
-        self.box_your_num.pack()
+        self.bg_image = tk.PhotoImage(file= os.path.join("img", "back", "hidden_input.png"))
+        label_bg = tk.Label(
+            master=self.frame,
+            image=self.bg_image,
+            width=800,
+            height=600
+        )
+        label_bg.place(x=0, y=0)
 
-        button_enter = ttk.Button(self.frame, text= "ENTER", command= self.onclick)
-        button_enter.pack()
-    
+        label = ttk.Label(
+            self.frame, 
+            text="あなたの番号を入力してください", 
+            background="white"
+            )
+        self.box_your_num = ttk.Entry(self.frame, width=30)
+        label.place(anchor= tk.CENTER, x= 400, y= 280)
+        self.box_your_num.place(anchor= tk.CENTER, x= 400, y= 300)
+
+        button_enter = tk.Button(
+            self.frame, 
+            highlightbackground="#ffffff", 
+            width=166, height=33, 
+            image= self.start_image, 
+            command=self.onclick)
+        button_enter.place(anchor= "c", x= 400, y= 355)
+
     def onclick(self):
         """自身の数字登録画面でEnterが押された時の処理
         入力されている数字が正しければ、サーバに登録し、モードに応じた画面に移行
@@ -150,20 +198,21 @@ class DispRegisterNum(Disp):
         else:
             self.box_your_num.delete(0, tk.END)
 
-    
     def is_correct_num(self):
         """入力された数字を取得し、それが16進5桁の数字かどうか判定
         :param なし
         :rtype: bool
         :return: 16進5桁の数字ならTrue, そうでなければFalse
         """
+        box = set()
         num = self.box_your_num.get()
         if len(num) != 5:
             return False
-        for element in num:
+        for digit in num:
             try:
-                int(element, 16)
-                pass
+                if int(digit, 16) in box:
+                    return False
+                box.add(int(digit, 16))
             except ValueError:
                 return False
         return True
@@ -174,15 +223,33 @@ class DispPlayingManual(Disp):
     def __init__(self) -> None:
 
         super().__init__()
+        self.bg_image = tk.PhotoImage(file= os.path.join("img", "back", "match.png"))
+        label_bg = tk.Label(
+            master=self.frame,
+            image=self.bg_image,
+            width=800,
+            height=600
+        )
+        label_bg.place(x=0, y=0)
 
-        label = ttk.Label(self.frame, text= "相手の数字はなんだと思う？")
-        self.box_guess_num = ttk.Entry(self.frame, width= 50)
+        self.box_guess_num = ttk.Entry(
+            self.frame, 
+            font= ("", 20),
+            foreground= "#3fe000",
+            width=10, 
+            justify= tk.CENTER)
 
-        label.pack()
-        self.box_guess_num.pack()
+        self.box_guess_num.place(x= 250, y= 535)
 
-        self.button = ttk.Button(self.frame, text= "ENTER", command= self.onclick, state= "disable")
-        self.button.pack()
+        self.button = tk.Button(
+            self.frame, 
+            highlightbackground="#ffffff", 
+            width=150, height=33, 
+            image= self.send_image, 
+            command=self.onclick, 
+            state= tk.DISABLED)
+        self.button.place(x= 577, y= 531)
+
 
         # check_interval ms 事にゲームの状態を確認
         self.check_interval = 1000
@@ -233,25 +300,32 @@ class DispPlayingManual(Disp):
         :rtype: bool
         :return: 16進5桁の数字ならTrue, そうでなければFalse
         """
+        box = set()
         num = self.box_guess_num.get()
         if len(num) != 5:
             return False
-        for element in num:
+        for digit in num:
             try:
-                int(element, 16)
-                pass
+                if int(digit, 16) in box:
+                    return False
+                box.add(digit)
             except ValueError:
                 return False
         
         return True
 
-class DispPlayingAuto:
 
+class DispPlayingAuto(Disp):
     def __init__(self) -> None:
         super().__init__()
-
-        label = tk.Label(self.frame, text= "棋神降臨")
-        label.pack()
+        self.bg_image = tk.PhotoImage(file= os.path.join("img", "back", "match.png"))
+        label_bg = tk.Label(
+            master=self.frame,
+            image=self.bg_image,
+            width=800,
+            height=600
+        )
+        label_bg.place(x=0, y=0)        
 
         # check_interval ms 事にゲームの状態を確認
         self.check_interval = 1000
