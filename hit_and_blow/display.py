@@ -12,6 +12,7 @@ from tkinter.constants import N
 from player import Player
 from typing import List
 
+
 class Game:
     player: Player = None
     root: tk.Tk
@@ -25,13 +26,16 @@ class Game:
 
         Game.show_login_disp()
 
-    
     @classmethod
     def set_player(cls, room_id: int, player_name: str, mode: int):
-        Game.player = Player(room_id= room_id, player_name= player_name, mode= mode)
+        Game.player = Player(room_id=room_id, player_name=player_name, mode=mode)
 
-        print("player info: room id:{}, name:{}, mode{}".format(room_id, player_name, mode))
-    
+        print(
+            "player info: room id:{}, name:{}, mode{}".format(
+                room_id, player_name, mode
+            )
+        )
+
     @classmethod
     def show_login_disp(cls):
         disp = DispLogin()
@@ -57,15 +61,18 @@ class Game:
         disp = DispResult()
         disp.show()
 
+
 class Disp:
     """表示フレームを作るクラス、そのままでは何もない画面なので継承して使う
     :param frame ttk.Frame: 表示フレーム
     :func show(): フレームを最前面に持ってくる
     """
+
     def __init__(self) -> None:
         self.frame = ttk.Frame(Game.root)
-        self.frame.grid(row= 0, column= 0, sticky= "nsew", pady= 0)
-        self.bg_image = tk.PhotoImage(file = r"img\bg.png").zoom(3, 3)
+        self.frame.grid(row=0, column=0, sticky="nsew", pady=0)
+        self.bg_image = tk.PhotoImage(file=r"img\back\login.png")
+        self.play_image = tk.PhotoImage(file=r"img\button\PLAY.png")
 
     def show(self) -> None:
         """オブジェクトのフレームを最前面に持ってくる
@@ -75,37 +82,45 @@ class Disp:
         self.frame.tkraise()
         return
 
-class DispLogin(Disp):
 
+class DispLogin(Disp):
     def __init__(self) -> None:
         super().__init__()
 
         label_bg = tk.Label(
-            master= self.frame,
-            image= self.bg_image,
-            width= 800,
-            height= 600
+            master=self.frame, image=self.bg_image, width=800, height=600
         )
-        label_bg.place(x= 0, y= 0)
+        label_bg.place(x=0, y=0)
 
-        label_player_name = ttk.Label(self.frame, text="プレイヤー名を入力してください")
-        self.box_player_name = ttk.Entry(self.frame, width = 50)
-        label_player_name.pack()
-        self.box_player_name.pack()
+        
+        self.button_login = tk.Button(self.frame, highlightbackground="#ffffff", width=166, height=33, image=self.play_image, command=self.onclick)
 
-        label_room_id = ttk.Label(self.frame, text="部屋番号を入力してください")
-        self.box_room_id = ttk.Entry(self.frame, width = 50)
-        label_room_id.pack()
-        self.box_room_id.pack()
+        """self.button_login = ttk.Button(
+            self.frame, text="GAME START", command=self.onclick
+        )"""
+        self.button_login.place(anchor="c", x=292, y=493)
 
-        label_mode = ttk.Label(self.frame, text= "モードを選択(auto: 1 / manual: 0)")
-        self.box_mode = ttk.Entry(self.frame, width= 50)
-        label_mode.pack()
-        self.box_mode.pack()
+        label_player_name = ttk.Label(
+            self.frame, text="プレイヤー名を入力してください", background="white"
+        )
+        self.box_player_name = ttk.Entry(self.frame, width=30)
+        label_player_name.place(anchor="c", x=292, y=250)
+        self.box_player_name.place(anchor="c", x=292, y=280)
 
-        self.button_login = ttk.Button(self.frame, text = "GAME START", command= self.onclick)
-        self.button_login.pack()
-    
+        label_room_id = ttk.Label(self.frame, text="部屋番号を入力してください", background="white")
+        self.box_room_id = ttk.Entry(self.frame, width=30)
+        label_room_id.place(anchor="c", x=292, y=330)
+        self.box_room_id.place(anchor="c", x=292, y=360)
+
+        label_mode = ttk.Label(
+            self.frame, text="モードを選択(auto: 1 / manual: 0)", background="white"
+        )
+        self.box_mode = ttk.Entry(self.frame, width=30)
+        label_mode.place(anchor="c", x=292, y=410)
+        self.box_mode.place(anchor="c", x=292, y=440)
+
+        
+
     def onclick(self):
         """ログイン画面でボタンを押された時の処理
         playerオブジェクトを作り、入室後、自身の数字登録画面に移行
@@ -113,26 +128,26 @@ class DispLogin(Disp):
         :return: なし
         """
         Game.set_player(
-            room_id= int(self.box_room_id.get()),
-            player_name= self.box_player_name.get(),
-            mode= int(self.box_mode.get())
-            )
+            room_id=int(self.box_room_id.get()),
+            player_name=self.box_player_name.get(),
+            mode=int(self.box_mode.get()),
+        )
         Game.player._api_com.enter_room()
         Game.show_waiting_disp()
 
-class DispRegisterNum(Disp):
 
+class DispRegisterNum(Disp):
     def __init__(self) -> None:
         super().__init__()
 
-        label = ttk.Label(self.frame, text= "あなたの番号を入力してください")
-        self.box_your_num = ttk.Entry(self.frame, width = 50)
+        label = ttk.Label(self.frame, text="あなたの番号を入力してください")
+        self.box_your_num = ttk.Entry(self.frame, width=50)
         label.pack()
         self.box_your_num.pack()
 
-        button_enter = ttk.Button(self.frame, text= "ENTER", command= self.onclick)
+        button_enter = ttk.Button(self.frame, text="ENTER", command=self.onclick)
         button_enter.pack()
-    
+
     def onclick(self):
         """自身の数字登録画面でEnterが押された時の処理
         入力されている数字が正しければ、サーバに登録し、モードに応じた画面に移行
@@ -150,7 +165,6 @@ class DispRegisterNum(Disp):
         else:
             self.box_your_num.delete(0, tk.END)
 
-    
     def is_correct_num(self):
         """入力された数字を取得し、それが16進5桁の数字かどうか判定
         :param なし
@@ -170,24 +184,25 @@ class DispRegisterNum(Disp):
 
 
 class DispPlayingManual(Disp):
-
     def __init__(self) -> None:
 
         super().__init__()
 
-        label = ttk.Label(self.frame, text= "相手の数字はなんだと思う？")
-        self.box_guess_num = ttk.Entry(self.frame, width= 50)
+        label = ttk.Label(self.frame, text="相手の数字はなんだと思う？")
+        self.box_guess_num = ttk.Entry(self.frame, width=50)
 
         label.pack()
         self.box_guess_num.pack()
 
-        self.button = ttk.Button(self.frame, text= "ENTER", command= self.onclick, state= "disable")
+        self.button = ttk.Button(
+            self.frame, text="ENTER", command=self.onclick, state="disable"
+        )
         self.button.pack()
 
         # check_interval ms 事にゲームの状態を確認
         self.check_interval = 1000
         self.frame.after(self.check_interval, self.update_game_state)
-    
+
     def update_game_state(self):
         """ゲームの状態を更新
         ゲーム進行中で自身のターンなら、Enterボタンを有効にする。
@@ -206,10 +221,8 @@ class DispPlayingManual(Disp):
         elif game_state == 3:
             Game.show_reslut_disp()
 
-
         self.frame.after(1000, self.update_game_state)
-    
-    
+
     def onclick(self):
         """マニュアルモードで進行中の画面でEnterボタンが押された時の処理
         入力されている数字が正常なら、サーバに登録
@@ -218,13 +231,15 @@ class DispPlayingManual(Disp):
         """
         if self.is_correct_num():
             guess_num = self.box_guess_num.get()
-            guess_result = Game.player.post_guess_num(guess_num= guess_num)
+            guess_result = Game.player.post_guess_num(guess_num=guess_num)
 
-            label_new_guess = tk.Label(self.frame, text= "{} : {}".format(guess_num, guess_result))
+            label_new_guess = tk.Label(
+                self.frame, text="{} : {}".format(guess_num, guess_result)
+            )
             label_new_guess.pack()
         else:
             print("ERROR : unexpected number")
-        
+
         self.box_guess_num.delete(0, tk.END)
 
     def is_correct_num(self):
@@ -242,15 +257,15 @@ class DispPlayingManual(Disp):
                 pass
             except ValueError:
                 return False
-        
+
         return True
 
-class DispPlayingAuto:
 
+class DispPlayingAuto:
     def __init__(self) -> None:
         super().__init__()
 
-        label = tk.Label(self.frame, text= "棋神降臨")
+        label = tk.Label(self.frame, text="棋神降臨")
         label.pack()
 
         # check_interval ms 事にゲームの状態を確認
@@ -269,29 +284,31 @@ class DispPlayingAuto:
             guess_num = Game.player.auto_guess()
             guess_result = Game.player.post_guess_num(guess_num)
 
-            label_new_guess = tk.Label(self.frame, text= "{} : {}".format(guess_num, guess_result))
+            label_new_guess = tk.Label(
+                self.frame, text="{} : {}".format(guess_num, guess_result)
+            )
             label_new_guess.pack()
 
         elif game_state == 3:
             Game.show_reslut_disp()
-        
+
         self.frame.after(self.check_interval, self.update_game_state)
 
 
 class DispResult(Disp):
-
     def __init__(self) -> None:
         super().__init__()
 
-        label : tk.Label
+        label: tk.Label
         winner = Game.player.get_winner()
         if winner == Game.player._player_name:
-            label = tk.Label(self.frame, text= "WIN!")
+            label = tk.Label(self.frame, text="WIN!")
         elif winner == None:
-            label = tk.Label(self.frame, text= "DRAW")
+            label = tk.Label(self.frame, text="DRAW")
         else:
-            label = tk.Label(self.frame, text= "ROSE")
+            label = tk.Label(self.frame, text="ROSE")
         label.pack()
+
 
 def disp_test():
     root = tk.Tk()
@@ -300,23 +317,25 @@ def disp_test():
     root.grid_columnconfigure(0, weight=1)
 
     frame = tk.Frame(root, bg="#555")
-    frame.grid(row= 0, column= 0, sticky= "nsew")
+    frame.grid(row=0, column=0, sticky="nsew")
 
-    button_image = tk.PhotoImage(file= "img\kaji_kasaihouchiki_button.png").subsample(4, 4)
+    button_image = tk.PhotoImage(file="img\kaji_kasaihouchiki_button.png").subsample(
+        4, 4
+    )
     buttons: List[tk.Button] = [None] * 16
     for i in range(16):
         buttons[i] = tk.Button(
             frame,
-            width= 80,
-            height= 80,
-            image= button_image,
-            text= "b{}".format(hex(i)[2:]))
-        
-        buttons[i].place(x= int(i % 4) * 90 + 430, y= int(i / 4) * 90 + 200)
-    
-    
+            width=80,
+            height=80,
+            image=button_image,
+            text="b{}".format(hex(i)[2:]),
+        )
+
+        buttons[i].place(x=int(i % 4) * 90 + 430, y=int(i / 4) * 90 + 200)
 
     root.mainloop()
+
 
 if __name__ == "__main__":
 
