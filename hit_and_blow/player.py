@@ -59,6 +59,14 @@ class Player:
         """        
         return self._api_com.get_table()["state"]
     
+    def get_opponent_table(self) -> List[dict["guess": str, "hit": int, "blow": int]]:
+        """相手のテーブルを取得
+        :param なし
+        :rtype: List[dict[]]
+        :return: 相手のテーブル
+        """   
+        return self._api_com.get_table["opponent_table"]
+    
     def auto_guess(self) -> str:
         """自動推測結果を返す
         :param なし
