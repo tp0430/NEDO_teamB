@@ -205,18 +205,10 @@ class DispRegisterNum(Disp):
         :rtype: bool
         :return: 16進5桁の数字ならTrue, そうでなければFalse
         """
-        box = set()
         num = self.box_your_num.get()
-        if len(num) != 5:
-            return False
-        for digit in num:
-            try:
-                if int(digit, 16) in box:
-                    return False
-                box.add(int(digit, 16))
-            except ValueError:
-                return False
-        return True
+        if len(num) == 5 and len(set(num)) == 5:
+            return True
+        return False
 
 
 class DispPlayingManual(Disp):
@@ -385,19 +377,10 @@ class DispPlayingManual(Disp):
         :rtype: bool
         :return: 16進5桁の数字ならTrue, そうでなければFalse
         """
-        box = set()
         num = self.box_guess_num.get()
-        if len(num) != 5:
-            return False
-        for digit in num:
-            try:
-                if int(digit, 16) in box:
-                    return False
-                box.add(digit)
-            except ValueError:
-                return False
-        
-        return True
+        if len(num) == 5 and len(set(num)) == 5:
+            return True
+        return False
 
 
 class DispPlayingAuto(Disp):
