@@ -8,6 +8,9 @@ from auto_guess import AutoGuess
 
 import streamlit as st
 
+import json
+import os
+
 ANS_LEN: int = 5
 MIN_ANS: int = 0
 MAX_ANS: int = 15
@@ -72,7 +75,7 @@ class Player:
 
         guess_num: str = None
         guess_result: Tuple[int, int] = None
-        key_for_input:int = 0
+        key_for_input: int = 0
 
         while self._api_com.get_table()["state"] == 2:
 
@@ -133,10 +136,25 @@ class Player:
         winner = self._api_com.get_table()["winner"]
         if winner == self._player_name:
             st.write("YOU WIN!")
+            json_path = os.path.join("save_file", "register.json")
+            json_open = open(json_path, "r+")
+            json_load = json.load(json_open)
+            json_load["game_count"]["win_num"] += 1
+            json_open.close()
         elif winner == None:
             st.write("DRAW")
+            json_path = os.path.join("save_file", "register.json")
+            json_open = open(json_path, "r+")
+            json_load = json.load(json_open)
+            json_load["game_count"]["draw_num"] += 1
+            json_open.close()
         else:
             st.write("YOU LOSE")
+            json_path = os.path.join("save_file", "register.json")
+            json_open = open(json_path, "r+")
+            json_load = json.load(json_open)
+            json_load["game_count"]["lose_num"] += 1
+            json_open.close()
         return
 
     def play_game(self) -> None:

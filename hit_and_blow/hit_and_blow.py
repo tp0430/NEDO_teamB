@@ -9,8 +9,20 @@ import streamlit as st
 
 from player import Player
 
+import json
+import os
+
 
 def main():
+    """
+    print(os.getcwd())
+    json_path = os.path.join("save_file","register.json")
+    json_open = open(json_path, "r+")
+    json_load = json.load(json_open)
+    print(json_load["game_count"]["game_num"] )
+    json_open.close()
+    """
+
     st.title("Hit and Blow")
     player_name = st.text_input("PLAYER NAME")
     room_id = int(st.number_input("ROOM ID"))
@@ -21,6 +33,11 @@ def main():
         elif player_mode == "auto":
             game_player = Player(room_id=room_id, player_name=player_name, mode=1)
         game_player.play_game()
+        json_path = os.path.join("save_file", "register.json")
+        json_open = open(json_path, "r+")
+        json_load = json.load(json_open)
+        json_load["game_count"]["game_num"] += 1
+        json_open.close()
 
 
 if __name__ == "__main__":

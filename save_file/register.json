@@ -1,0 +1,10 @@
+{
+    "game_count": 
+        {
+            "game_num": 0,
+            "win_num": 0,
+            "lose_num": 0,
+            "draw_num": 0
+        }
+    
+}
