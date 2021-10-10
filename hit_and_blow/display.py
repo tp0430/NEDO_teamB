@@ -20,7 +20,6 @@ from PIL import Image, ImageTk
 class Game:
     player: Player = None
     root: tk.Tk
-    
 
     @classmethod
     def init(cls) -> None:
@@ -29,7 +28,10 @@ class Game:
         Game.root.grid_rowconfigure(0, weight=1)
         Game.root.grid_columnconfigure(0, weight=1)
         Game.font_jpn = font.Font(Game.root, family="游ゴシック", size=10)
-        Game.font_alp = font.Font(Game.root, family="YU Gothic UI", size=15, weight="bold")
+        Game.font_jpn_large = font.Font(Game.root, family="游ゴシック", size=13, weight="bold")
+        Game.font_eng = font.Font(
+            Game.root, family="YU Gothic UI", size=15, weight="bold"
+        )
 
         Game.show_login_disp()
 
@@ -116,23 +118,43 @@ class DispLogin(Disp):
         self.button_login.place(anchor="c", x=292, y=493)
 
         label_player_name = ttk.Label(
-            self.frame, text="プレイヤー名を入力してください", background="white", font=Game.font_jpn
+            self.frame, text="プレイヤー名を入力",foreground="#333f50", background="white", font=Game.font_jpn
         )
         self.box_player_name = ttk.Entry(self.frame, width=30)
         label_player_name.place(anchor="c", x=292, y=250)
         self.box_player_name.place(anchor="c", x=292, y=280)
 
-        label_room_id = ttk.Label(self.frame, text="部屋番号を入力してください", background="white", font=Game.font_jpn)
+        label_room_id = ttk.Label(
+            self.frame, text="部屋番号を入力",foreground="#333f50", background="white", font=Game.font_jpn
+        )
         self.box_room_id = ttk.Entry(self.frame, width=30)
         label_room_id.place(anchor="c", x=292, y=330)
         self.box_room_id.place(anchor="c", x=292, y=360)
 
         label_mode = ttk.Label(
-            self.frame, text="モードを選択(auto: 1 / manual: 0)", background="white", font=Game.font_jpn
+            self.frame,
+            text="モードを選択(auto: 1 / manual: 0)",
+            foreground="#333f50",
+            background="white",
+            font=Game.font_jpn,
         )
         self.box_mode = ttk.Entry(self.frame, width=30)
         label_mode.place(anchor="c", x=292, y=410)
         self.box_mode.place(anchor="c", x=292, y=440)
+
+        label_achievments = ttk.Label(
+            self.frame, text="Achievements",foreground="#333f50", background="white", font=Game.font_eng
+        )
+        label_achievments.place(anchor="c", x=573, y=250)
+        achievements = {"テスト": 2, "hoge": 4}
+        for i, k in enumerate(achievements.items()):
+            label_content = ttk.Label(
+                self.frame,
+                text=k[0] + ":" + str(k[1]),
+                background="white",
+                font=Game.font_jpn,
+            )
+            label_content.place(anchor="c", x=573, y=290 + 30 * i)
 
     def onclick(self):
         """ログイン画面でボタンを押された時の処理
@@ -173,7 +195,9 @@ class DispRegisterNum(Disp):
         )
         label_bg.place(x=0, y=0)
 
-        label = ttk.Label(self.frame, text="相手が当てる番号を入力", background="white", font=Game.font_jpn)
+        label = ttk.Label(
+            self.frame, text="相手が当てる番号を入力", foreground="#333f50", background="white", font=Game.font_jpn
+        )
         self.box_your_num = ttk.Entry(self.frame, width=30)
         label.place(anchor=tk.CENTER, x=400, y=270)
         self.box_your_num.place(anchor=tk.CENTER, x=400, y=300)
@@ -294,7 +318,12 @@ class DispPlayingManual(Disp):
         if game_state == 2:
             if Game.player.is_my_turn():
                 label_turn = ttk.Label(
-                    self.frame, text="   YOU  ", foreground="#333f50", background="#96e9cc", width=10, font=Game.font_alp
+                    self.frame,
+                    text="   YOU  ",
+                    foreground="#333f50",
+                    background="#96e9cc",
+                    width=10,
+                    font=Game.font_eng,
                 )
                 label_turn.place(anchor="c", x=288, y=63)
 
@@ -330,7 +359,12 @@ class DispPlayingManual(Disp):
                 self.button["state"] = tk.NORMAL
             else:
                 label_turn = ttk.Label(
-                    self.frame, text="OPPONENT", foreground="#333f50", background="#96e9cc", width=10, font=Game.font_alp
+                    self.frame,
+                    text="OPPONENT",
+                    foreground="#333f50",
+                    background="#96e9cc",
+                    width=10,
+                    font=Game.font_eng,
                 )
                 label_turn.place(anchor="c", x=288, y=63)
                 self.button["state"] = tk.DISABLED
@@ -501,15 +535,31 @@ class DispResult(Disp):
     def __init__(self) -> None:
         super().__init__()
 
-        label: tk.Label
+        self.img_victory = ImageTk.PhotoImage(
+            Image.open(os.path.join("img", "result", "VICTORY.png"))
+        )
+        self.img_defeat = ImageTk.PhotoImage(
+            Image.open(os.path.join("img", "result", "DEFEAT.png"))
+        )
+        self.img_draw = ImageTk.PhotoImage(
+            Image.open(os.path.join("img", "result", "DRAW.png"))
+        )
+
         winner = Game.player.get_winner()
         if winner == Game.player._player_name:
-            label = tk.Label(self.frame, text="WIN!")
+            result = "VICTORY"
         elif winner == None:
-            label = tk.Label(self.frame, text="DRAW")
+            result = "DRAW"
         else:
-            label = tk.Label(self.frame, text="ROSE")
-        label.pack()
+            result = "DEFEAT"
+
+        self.img_result = ImageTk.PhotoImage(
+            Image.open(os.path.join("img", "result", result + ".png"))
+        )
+        label_result = tk.Label(
+            master=self.frame, image=self.img_result, width=800, height=600
+        )
+        label_result.place(x=0, y=0)
 
 
 def disp_test():
