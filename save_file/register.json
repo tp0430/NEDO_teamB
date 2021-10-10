@@ -4,7 +4,13 @@
             "game_num": 0,
             "win_num": 0,
             "lose_num": 0,
-            "draw_num": 0
+            "draw_num": 0,
+            "win_1":true,
+            "lose_1":true,
+            "draw_1":true,
+            "win_10":true,
+            "lose_10":true,
+            "draw_10":true
         }
     
 }

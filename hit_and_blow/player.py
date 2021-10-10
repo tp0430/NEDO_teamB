@@ -134,27 +134,37 @@ class Player:
         """
 
         winner = self._api_com.get_table()["winner"]
+        json_path = os.path.join("save_file", "register.json")
+        json_open = open(json_path, "r+")
+        json_load = json.load(json_open)
         if winner == self._player_name:
             st.write("YOU WIN!")
-            json_path = os.path.join("save_file", "register.json")
-            json_open = open(json_path, "r+")
-            json_load = json.load(json_open)
             json_load["game_count"]["win_num"] += 1
-            json_open.close()
         elif winner == None:
             st.write("DRAW")
-            json_path = os.path.join("save_file", "register.json")
-            json_open = open(json_path, "r+")
-            json_load = json.load(json_open)
             json_load["game_count"]["draw_num"] += 1
-            json_open.close()
         else:
             st.write("YOU LOSE")
-            json_path = os.path.join("save_file", "register.json")
-            json_open = open(json_path, "r+")
-            json_load = json.load(json_open)
             json_load["game_count"]["lose_num"] += 1
-            json_open.close()
+        if json_load["game_count"]["win_num"] ==1 and json_load["game_count"]["win_1"] == True:
+            json_load["game_count"]["win_1"] == False
+            pass #「初勝利」とか？
+        elif json_load["game_count"]["lose_num"] ==1 and json_load["game_count"]["lose_1"] == True:
+            json_load["game_count"]["lose_1"] == False
+            pass #「初敗北」とか？
+        elif json_load["game_count"]["draw_num"] ==1 and json_load["game_count"]["draw_1"] == True:
+            json_load["game_count"]["draw_1"] == False
+            pass #「初引き分け」とか？
+        elif json_load["game_count"]["win_num"] ==10 and json_load["game_count"]["win_10"] == True:
+            json_load["game_count"]["win_10"] == False
+            pass #「祝10勝」とか？
+        elif json_load["game_count"]["lose_num"] ==10 and json_load["game_count"]["lose_10"] == True:
+            json_load["game_count"]["lose_10"] == False
+            pass #「不屈の精神」とか？
+        elif json_load["game_count"]["draw_num"] ==10 and json_load["game_count"]["draw_10"] == True:
+            json_load["game_count"]["draw_10"] == False
+            pass #「泥試合」とか？
+        json_open.close()
         return
 
     def play_game(self) -> None:
