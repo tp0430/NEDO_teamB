@@ -28,7 +28,12 @@ class Game:
         Game.root.grid_rowconfigure(0, weight=1)
         Game.root.grid_columnconfigure(0, weight=1)
         Game.font_jpn = font.Font(Game.root, family="游ゴシック", size=10)
-        Game.font_jpn_large = font.Font(Game.root, family="游ゴシック", size=13, weight="bold")
+        Game.font_jpn_bold = font.Font(
+            Game.root, family="游ゴシック", size=10, weight="bold"
+        )
+        Game.font_jpn_large = font.Font(
+            Game.root, family="游ゴシック", size=13, weight="bold"
+        )
         Game.font_eng = font.Font(
             Game.root, family="YU Gothic UI", size=15, weight="bold"
         )
@@ -118,14 +123,22 @@ class DispLogin(Disp):
         self.button_login.place(anchor="c", x=292, y=493)
 
         label_player_name = ttk.Label(
-            self.frame, text="プレイヤー名を入力",foreground="#333f50", background="white", font=Game.font_jpn
+            self.frame,
+            text="プレイヤー名を入力",
+            foreground="#333f50",
+            background="white",
+            font=Game.font_jpn_bold,
         )
         self.box_player_name = ttk.Entry(self.frame, width=30)
         label_player_name.place(anchor="c", x=292, y=250)
         self.box_player_name.place(anchor="c", x=292, y=280)
 
         label_room_id = ttk.Label(
-            self.frame, text="部屋番号を入力",foreground="#333f50", background="white", font=Game.font_jpn
+            self.frame,
+            text="部屋番号を入力",
+            foreground="#333f50",
+            background="white",
+            font=Game.font_jpn_bold,
         )
         self.box_room_id = ttk.Entry(self.frame, width=30)
         label_room_id.place(anchor="c", x=292, y=330)
@@ -136,14 +149,18 @@ class DispLogin(Disp):
             text="モードを選択(auto: 1 / manual: 0)",
             foreground="#333f50",
             background="white",
-            font=Game.font_jpn,
+            font=Game.font_jpn_bold,
         )
         self.box_mode = ttk.Entry(self.frame, width=30)
         label_mode.place(anchor="c", x=292, y=410)
         self.box_mode.place(anchor="c", x=292, y=440)
 
         label_achievments = ttk.Label(
-            self.frame, text="Achievements",foreground="#333f50", background="white", font=Game.font_eng
+            self.frame,
+            text="Achievements",
+            foreground="#333f50",
+            background="white",
+            font=Game.font_eng,
         )
         label_achievments.place(anchor="c", x=573, y=250)
         achievements = {"テスト": 2, "hoge": 4}
@@ -196,7 +213,11 @@ class DispRegisterNum(Disp):
         label_bg.place(x=0, y=0)
 
         label = ttk.Label(
-            self.frame, text="相手が当てる番号を入力", foreground="#333f50", background="white", font=Game.font_jpn
+            self.frame,
+            text="相手が当てる番号を入力",
+            foreground="#333f50",
+            background="white",
+            font=Game.font_jpn_bold,
         )
         self.box_your_num = ttk.Entry(self.frame, width=30)
         label.place(anchor=tk.CENTER, x=400, y=270)
