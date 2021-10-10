@@ -6,12 +6,15 @@
     * Created by: KENTA Mizuhara
 """
 import os
+import glob
+
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter.constants import N, X, Y
 from player import Player
 from typing import List
 from PIL import Image, ImageTk
+
 
 class Game:
     player: Player = None
@@ -26,13 +29,16 @@ class Game:
 
         Game.show_login_disp()
 
-    
     @classmethod
     def set_player(cls, room_id: int, player_name: str, mode: int):
-        Game.player = Player(room_id= room_id, player_name= player_name, mode= mode)
+        Game.player = Player(room_id=room_id, player_name=player_name, mode=mode)
 
-        print("player info: room id:{}, name:{}, mode{}".format(room_id, player_name, mode))
-    
+        print(
+            "player info: room id:{}, name:{}, mode{}".format(
+                room_id, player_name, mode
+            )
+        )
+
     @classmethod
     def show_login_disp(cls):
         disp = DispLogin()
@@ -58,18 +64,22 @@ class Game:
         disp = DispResult()
         disp.show()
 
+
 class Disp:
     """表示フレームを作るクラス、そのままでは何もない画面なので継承して使う
     :param frame ttk.Frame: 表示フレーム
     :func show(): フレームを最前面に持ってくる
     """
+
     def __init__(self) -> None:
         self.frame = ttk.Frame(Game.root)
         self.frame.grid(row=0, column=0, sticky="nsew", pady=0)
         self.bg_image: tk.PhotoImage
         self.play_image = tk.PhotoImage(file=r"img\button\PLAY.png")
-        self.start_image = tk.PhotoImage(file= os.path.join("img", "button", "START.png"))
-        self.send_image = tk.PhotoImage(file= os.path.join("img", "button", "SEND.png"))
+        self.start_image = tk.PhotoImage(
+            file=os.path.join("img", "button", "START.png")
+        )
+        self.send_image = tk.PhotoImage(file=os.path.join("img", "button", "SEND.png"))
 
     def show(self) -> None:
         """オブジェクトのフレームを最前面に持ってくる
@@ -79,26 +89,25 @@ class Disp:
         self.frame.tkraise()
         return
 
-class DispLogin(Disp):
 
+class DispLogin(Disp):
     def __init__(self) -> None:
         super().__init__()
-        self.bg_image = tk.PhotoImage(file= os.path.join("img", "back", "login.png"))
-        
+        self.bg_image = tk.PhotoImage(file=os.path.join("img", "back", "login.png"))
+
         label_bg = tk.Label(
-            master=self.frame,
-            image=self.bg_image,
-            width=800,
-            height=600
+            master=self.frame, image=self.bg_image, width=800, height=600
         )
         label_bg.place(x=0, y=0)
 
         self.button_login = tk.Button(
-            self.frame, 
-            highlightbackground="#ffffff", 
-            width=166, height=33, 
-            image=self.play_image, 
-            command=self.onclick)
+            self.frame,
+            highlightbackground="#ffffff",
+            width=166,
+            height=33,
+            image=self.play_image,
+            command=self.onclick,
+        )
 
         self.button_login.place(anchor="c", x=292, y=493)
 
@@ -121,8 +130,6 @@ class DispLogin(Disp):
         label_mode.place(anchor="c", x=292, y=410)
         self.box_mode.place(anchor="c", x=292, y=440)
 
-        
-
     def onclick(self):
         """ログイン画面でボタンを押された時の処理
         playerオブジェクトを作り、入室後、自身の数字登録画面に移行
@@ -142,45 +149,40 @@ class DispLogin(Disp):
             self.box_room_id.delete(0, tk.END)
             self.box_mode.delete(0, tk.END)
             return
-        
+
         Game.set_player(
-            room_id= room_id,
-            player_name=self.box_player_name.get(),
-            mode= mode,
+            room_id=room_id, player_name=self.box_player_name.get(), mode=mode,
         )
         Game.player._api_com.enter_room()
         Game.show_waiting_disp()
 
-class DispRegisterNum(Disp):
 
+class DispRegisterNum(Disp):
     def __init__(self) -> None:
         super().__init__()
 
-        self.bg_image = tk.PhotoImage(file= os.path.join("img", "back", "hidden_input.png"))
+        self.bg_image = tk.PhotoImage(
+            file=os.path.join("img", "back", "hidden_input.png")
+        )
         label_bg = tk.Label(
-            master=self.frame,
-            image=self.bg_image,
-            width=800,
-            height=600
+            master=self.frame, image=self.bg_image, width=800, height=600
         )
         label_bg.place(x=0, y=0)
 
-        label = ttk.Label(
-            self.frame, 
-            text="あなたの番号を入力してください", 
-            background="white"
-            )
+        label = ttk.Label(self.frame, text="あなたの番号を入力してください", background="white")
         self.box_your_num = ttk.Entry(self.frame, width=30)
-        label.place(anchor= tk.CENTER, x= 400, y= 280)
-        self.box_your_num.place(anchor= tk.CENTER, x= 400, y= 300)
+        label.place(anchor=tk.CENTER, x=400, y=280)
+        self.box_your_num.place(anchor=tk.CENTER, x=400, y=300)
 
         button_enter = tk.Button(
-            self.frame, 
-            highlightbackground="#ffffff", 
-            width=166, height=33, 
-            image= self.start_image, 
-            command=self.onclick)
-        button_enter.place(anchor= "c", x= 400, y= 355)
+            self.frame,
+            highlightbackground="#ffffff",
+            width=166,
+            height=33,
+            image=self.start_image,
+            command=self.onclick,
+        )
+        button_enter.place(anchor="c", x=400, y=355)
 
     def onclick(self):
         """自身の数字登録画面でEnterが押された時の処理
@@ -212,36 +214,30 @@ class DispRegisterNum(Disp):
 
 
 class DispPlayingManual(Disp):
-
     def __init__(self) -> None:
         super().__init__()
-        self.bg_image = tk.PhotoImage(file= os.path.join("img", "back", "match.png"))
+        self.bg_image = tk.PhotoImage(file=os.path.join("img", "back", "match.png"))
         label_bg = tk.Label(
-            master=self.frame,
-            image=self.bg_image,
-            width=800,
-            height=600
+            master=self.frame, image=self.bg_image, width=800, height=600
         )
         label_bg.place(x=0, y=0)
 
         self.box_guess_num = ttk.Entry(
-            self.frame, 
-            font= ("", 20),
-            foreground= "#3fe000",
-            width=10, 
-            justify= tk.CENTER)
+            self.frame, font=("", 20), foreground="#3fe000", width=10, justify=tk.CENTER
+        )
 
-        self.box_guess_num.place(x= 250, y= 535)
+        self.box_guess_num.place(x=250, y=535)
 
         self.button = tk.Button(
-            self.frame, 
-            highlightbackground="#ffffff", 
-            width=150, height=33, 
-            image= self.send_image, 
-            command=self.onclick, 
-            state= tk.NORMAL)
-        self.button.place(x= 577, y= 531)
-
+            self.frame,
+            highlightbackground="#ffffff",
+            width=150,
+            height=33,
+            image=self.send_image,
+            command=self.onclick,
+            state=tk.NORMAL,
+        )
+        self.button.place(x=577, y=531)
 
         self.y_interval = 20
         self.y_you_guess = 13
@@ -249,53 +245,38 @@ class DispPlayingManual(Disp):
         self.y_opponent_guess = 13
         self.y_opponent_response = 13
         self.canvas_you_guess = tk.Canvas(
-            self.frame, 
-            width= 120,
-            height= 300, 
-            borderwidth= 0, 
-            bg= "#20c080"
+            self.frame, width=120, height=300, borderwidth=0, bg="#2eb280"
         )
-        self.canvas_you_guess.place(anchor= tk.CENTER, x= 162, y= 335)
+        self.canvas_you_guess.place(anchor=tk.CENTER, x=162, y=335)
         self.canvas_you_response = tk.Canvas(
-            self.frame, 
-            width= 120,
-            height= 300, 
-            borderwidth= 0, 
-            bg= "#20c080"
+            self.frame, width=120, height=300, borderwidth=0, bg="#2eb280"
         )
-        self.canvas_you_response.place(anchor= tk.CENTER, x= 315, y= 335)
+        self.canvas_you_response.place(anchor=tk.CENTER, x=315, y=335)
 
         self.canvas_opponent_guess = tk.Canvas(
-            self.frame, 
-            width= 120, 
-            height= 300, 
-            borderwidth= 0, 
-            bg= "#40c0a0"
+            self.frame, width=120, height=300, borderwidth=0, bg="#009e9a"
         )
-        self.canvas_opponent_guess.place(anchor= tk.CENTER, x= 495, y= 335)
+        self.canvas_opponent_guess.place(anchor=tk.CENTER, x=495, y=335)
 
         self.canvas_opponent_response = tk.Canvas(
-            self.frame, 
-            width= 120, 
-            height= 300, 
-            borderwidth= 0, 
-            bg= "#40c0a0"
+            self.frame, width=120, height=300, borderwidth=0, bg="#009e9a"
         )
-        self.canvas_opponent_response.place(anchor= tk.CENTER, x= 645, y= 335)
+        self.canvas_opponent_response.place(anchor=tk.CENTER, x=645, y=335)
 
         # ここで、15枚、レスポンスに応じた画像を用意して、辞書形式にまとめておく
-        self.img_response = ImageTk.PhotoImage(
-            Image.open(os.path.join("img", "response", "sample_response.png"))
-            )
-        
+        photo_dir = os.path.join("img", "response", "")
+        self.img_response_dict = {
+            name[-13:-4]: ImageTk.PhotoImage(Image.open(name))
+            for name in glob.glob(photo_dir + "*.png")
+        }
+
         # 相手のテーブル作成用
         self.cnt_opponent_guess = 0
-    
 
         # check_interval ms 事にゲームの状態を確認
         self.check_interval = 1000
         self.frame.after(self.check_interval, self.update_game_state)
-    
+
     def update_game_state(self):
         """ゲームの状態を更新
         ゲーム進行中で自身のターンなら、Enterボタンを有効にする。
@@ -312,20 +293,28 @@ class DispPlayingManual(Disp):
                 opponent_table = Game.player.get_opponent_table()
                 if self.cnt_opponent_guess < len(opponent_table):
                     latest_opponent_guess = opponent_table[-1]["guess"]
-                    latest_opponent_res = (opponent_table[-1]["hit"], opponent_table[-1]["blow"])
+                    latest_opponent_res = (
+                        opponent_table[-1]["hit"],
+                        opponent_table[-1]["blow"],
+                    )
 
                     self.canvas_opponent_guess.create_text(
-                        60, 
-                        self.y_opponent_guess, 
-                        text= latest_opponent_guess, 
-                        fill= "#ffffff", 
-                        font= ("", 15, "bold")
+                        60,
+                        self.y_opponent_guess,
+                        text=latest_opponent_guess,
+                        fill="#ffffff",
+                        font=("", 15, "bold"),
                     )
                     self.y_opponent_guess += self.y_interval
                     self.canvas_opponent_response.create_image(
-                        60, 
-                        self.y_opponent_response, 
-                        image= self.img_response
+                        60,
+                        self.y_opponent_response,
+                        image=self.img_response_dict[
+                            str(latest_opponent_res[0])
+                            + "hit"
+                            + str(latest_opponent_res[1])
+                            + "blow"
+                        ],
                     )
                     self.y_opponent_response += self.y_interval
 
@@ -336,10 +325,8 @@ class DispPlayingManual(Disp):
         elif game_state == 3:
             Game.show_reslut_disp()
 
-
         self.frame.after(1000, self.update_game_state)
-    
-    
+
     def onclick(self):
         """マニュアルモードで進行中の画面でEnterボタンが押された時の処理
         入力されている数字が正常なら、サーバに登録
@@ -349,26 +336,27 @@ class DispPlayingManual(Disp):
         if self.is_correct_num():
             guess_num = self.box_guess_num.get()
             self.canvas_you_guess.create_text(
-                60, 
-                self.y_you_guess, 
-                text= guess_num, 
-                fill= "#ffffff", 
-                font= ("", 15, "bold")
-                )
+                60,
+                self.y_you_guess,
+                text=guess_num,
+                fill="#ffffff",
+                font=("", 15, "bold"),
+            )
             self.y_you_guess += self.y_interval
 
-            guess_result = Game.player.post_guess_num(guess_num= guess_num)
+            guess_result = Game.player.post_guess_num(guess_num=guess_num)
             self.canvas_you_response.create_image(
                 60,
                 self.y_you_responce,
-                image= self.img_response
+                image=self.img_response_dict[
+                    str(guess_result[0]) + "hit" + str(guess_result[1]) + "blow"
+                ],
             )
             self.y_you_responce += self.y_interval
 
-
         else:
             print("ERROR : unexpected number")
-        
+
         self.box_guess_num.delete(0, tk.END)
 
     def is_correct_num(self):
@@ -386,15 +374,11 @@ class DispPlayingManual(Disp):
 class DispPlayingAuto(Disp):
     def __init__(self) -> None:
         super().__init__()
-        self.bg_image = tk.PhotoImage(file= os.path.join("img", "back", "match.png"))
+        self.bg_image = tk.PhotoImage(file=os.path.join("img", "back", "match.png"))
         label_bg = tk.Label(
-            master=self.frame,
-            image=self.bg_image,
-            width=800,
-            height=600
+            master=self.frame, image=self.bg_image, width=800, height=600
         )
-        label_bg.place(x=0, y=0)     
-
+        label_bg.place(x=0, y=0)
 
         self.y_interval = 20
         self.y_you_guess = 13
@@ -402,48 +386,34 @@ class DispPlayingAuto(Disp):
         self.y_opponent_guess = 13
         self.y_opponent_response = 13
         self.canvas_you_guess = tk.Canvas(
-            self.frame, 
-            width= 120,
-            height= 300, 
-            borderwidth= 0, 
-            bg= "#20c080"
+            self.frame, width=120, height=300, borderwidth=0, bg="#20c080"
         )
-        self.canvas_you_guess.place(anchor= tk.CENTER, x= 162, y= 335)
+        self.canvas_you_guess.place(anchor=tk.CENTER, x=162, y=335)
         self.canvas_you_response = tk.Canvas(
-            self.frame, 
-            width= 120,
-            height= 300, 
-            borderwidth= 0, 
-            bg= "#20c080"
+            self.frame, width=120, height=300, borderwidth=0, bg="#20c080"
         )
-        self.canvas_you_response.place(anchor= tk.CENTER, x= 315, y= 335)
+        self.canvas_you_response.place(anchor=tk.CENTER, x=315, y=335)
 
         self.canvas_opponent_guess = tk.Canvas(
-            self.frame, 
-            width= 120, 
-            height= 300, 
-            borderwidth= 0, 
-            bg= "#40c0a0"
+            self.frame, width=120, height=300, borderwidth=0, bg="#40c0a0"
         )
-        self.canvas_opponent_guess.place(anchor= tk.CENTER, x= 495, y= 335)
+        self.canvas_opponent_guess.place(anchor=tk.CENTER, x=495, y=335)
 
         self.canvas_opponent_response = tk.Canvas(
-            self.frame, 
-            width= 120, 
-            height= 300, 
-            borderwidth= 0, 
-            bg= "#40c0a0"
+            self.frame, width=120, height=300, borderwidth=0, bg="#40c0a0"
         )
-        self.canvas_opponent_response.place(anchor= tk.CENTER, x= 645, y= 335)
+        self.canvas_opponent_response.place(anchor=tk.CENTER, x=645, y=335)
 
         # ここで、15枚、レスポンスに応じた画像を用意して、辞書形式にまとめておく
-        self.img_response = ImageTk.PhotoImage(
-            Image.open(os.path.join("img", "response", "sample_response.png"))
-            )
+        photo_dir = os.path.join("img", "response", "")
+        self.img_response_dict = {
+            name[-13:-4]: ImageTk.PhotoImage(Image.open(name))
+            for name in glob.glob(photo_dir + "*.png")
+        }
 
         # 相手のテーブル作成用
         self.cnt_opponent_guess = 0
-        
+
         # check_interval ms 事にゲームの状態を確認
         self.check_interval = 1000
         self.frame.after(self.check_interval, self.update_game_state)
@@ -461,63 +431,70 @@ class DispPlayingAuto(Disp):
             opponent_table = Game.player.get_opponent_table()
             if self.cnt_opponent_guess < len(opponent_table):
                 latest_opponent_guess = opponent_table[-1]["guess"]
-                latest_opponent_res = (opponent_table[-1]["hit"], opponent_table[-1]["blow"])
+                latest_opponent_res = (
+                    opponent_table[-1]["hit"],
+                    opponent_table[-1]["blow"],
+                )
 
                 self.canvas_opponent_guess.create_text(
-                    60, 
-                    self.y_opponent_guess, 
-                    text= latest_opponent_guess, 
-                    fill= "#ffffff", 
-                    font= ("", 15, "bold")
+                    60,
+                    self.y_opponent_guess,
+                    text=latest_opponent_guess,
+                    fill="#ffffff",
+                    font=("", 15, "bold"),
                 )
                 self.y_opponent_guess += self.y_interval
                 self.canvas_opponent_response.create_image(
-                    60, 
-                    self.y_opponent_response, 
-                    image= self.img_response
+                    60,
+                    self.y_you_responce,
+                    image=self.img_response_dict[
+                        str(latest_opponent_res[0])
+                        + "hit"
+                        + str(latest_opponent_res[1])
+                        + "blow"
+                    ],
                 )
+
                 self.y_opponent_response += self.y_interval
 
                 self.cnt_opponent_guess += 1
-            
+
             guess_num = Game.player.auto_guess()
             self.canvas_you_guess.create_text(
-                60, 
-                self.y_you_guess, 
-                text= guess_num, 
-                fill= "#ffffff", 
-                font= ("", 15, "bold")
-                )
+                60,
+                self.y_you_guess,
+                text=guess_num,
+                fill="#ffffff",
+                font=("", 15, "bold"),
+            )
             self.y_you_guess += self.y_interval
 
             guess_result = Game.player.post_guess_num(guess_num)
             self.canvas_you_response.create_image(
-                60,
-                self.y_you_responce,
-                image= self.img_response
+                60, self.y_you_responce, image=self.img_response_dict[str(guess_result[0])+"hit"+str(guess_result[1])+"blow"]
             )
             self.y_you_responce += self.y_interval
 
         elif game_state == 3:
             Game.show_reslut_disp()
-        
+
         self.frame.after(self.check_interval, self.update_game_state)
 
 
 class DispResult(Disp):
-
     def __init__(self) -> None:
         super().__init__()
 
-        label : tk.Label
+        label: tk.Label
         winner = Game.player.get_winner()
         if winner == Game.player._player_name:
-            label = tk.Label(self.frame, text= "WIN!")
+            label = tk.Label(self.frame, text="WIN!")
         elif winner == None:
-            label = tk.Label(self.frame, text= "DRAW")
+            label = tk.Label(self.frame, text="DRAW")
         else:
-            label = tk.Label(self.frame, text= "ROSE")
+            label = tk.Label(self.frame, text="ROSE")
         label.pack()
+
 
 def disp_test():
     root = tk.Tk()
@@ -526,23 +503,25 @@ def disp_test():
     root.grid_columnconfigure(0, weight=1)
 
     frame = tk.Frame(root, bg="#555")
-    frame.grid(row= 0, column= 0, sticky= "nsew")
+    frame.grid(row=0, column=0, sticky="nsew")
 
-    button_image = tk.PhotoImage(file= "img\kaji_kasaihouchiki_button.png").subsample(4, 4)
+    button_image = tk.PhotoImage(file="img\kaji_kasaihouchiki_button.png").subsample(
+        4, 4
+    )
     buttons: List[tk.Button] = [None] * 16
     for i in range(16):
         buttons[i] = tk.Button(
             frame,
-            width= 80,
-            height= 80,
-            image= button_image,
-            text= "b{}".format(hex(i)[2:]))
-        
-        buttons[i].place(x= int(i % 4) * 90 + 430, y= int(i / 4) * 90 + 200)
-    
-    
+            width=80,
+            height=80,
+            image=button_image,
+            text="b{}".format(hex(i)[2:]),
+        )
+
+        buttons[i].place(x=int(i % 4) * 90 + 430, y=int(i / 4) * 90 + 200)
 
     root.mainloop()
+
 
 if __name__ == "__main__":
 
