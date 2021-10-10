@@ -6,16 +6,7 @@
     * Created by: KENTA Mizuhara
 """
 
-
-import tkinter as tk
-import tkinter.ttk as ttk
-
-from sys import api_version
-from display import DispLogin
-from display import DispRegisterNum
 from display import Game
-
-
 
 
 def main():
@@ -24,5 +15,4 @@ def main():
 
 
 if __name__ == "__main__":
-
     main()
