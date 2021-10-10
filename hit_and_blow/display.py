@@ -9,6 +9,7 @@ import os
 import glob
 
 import tkinter as tk
+from tkinter import font
 import tkinter.ttk as ttk
 from tkinter.constants import N, X, Y
 from player import Player
@@ -19,6 +20,7 @@ from PIL import Image, ImageTk
 class Game:
     player: Player = None
     root: tk.Tk
+    
 
     @classmethod
     def init(cls) -> None:
@@ -26,6 +28,8 @@ class Game:
         Game.root.geometry("800x600")
         Game.root.grid_rowconfigure(0, weight=1)
         Game.root.grid_columnconfigure(0, weight=1)
+        Game.font_jpn = font.Font(Game.root, family="游ゴシック", size=10)
+        Game.font_alp = font.Font(Game.root, family="YU Gothic UI", size=15, weight="bold")
 
         Game.show_login_disp()
 
@@ -112,19 +116,19 @@ class DispLogin(Disp):
         self.button_login.place(anchor="c", x=292, y=493)
 
         label_player_name = ttk.Label(
-            self.frame, text="プレイヤー名を入力してください", background="white"
+            self.frame, text="プレイヤー名を入力してください", background="white", font=Game.font_jpn
         )
         self.box_player_name = ttk.Entry(self.frame, width=30)
         label_player_name.place(anchor="c", x=292, y=250)
         self.box_player_name.place(anchor="c", x=292, y=280)
 
-        label_room_id = ttk.Label(self.frame, text="部屋番号を入力してください", background="white")
+        label_room_id = ttk.Label(self.frame, text="部屋番号を入力してください", background="white", font=Game.font_jpn)
         self.box_room_id = ttk.Entry(self.frame, width=30)
         label_room_id.place(anchor="c", x=292, y=330)
         self.box_room_id.place(anchor="c", x=292, y=360)
 
         label_mode = ttk.Label(
-            self.frame, text="モードを選択(auto: 1 / manual: 0)", background="white"
+            self.frame, text="モードを選択(auto: 1 / manual: 0)", background="white", font=Game.font_jpn
         )
         self.box_mode = ttk.Entry(self.frame, width=30)
         label_mode.place(anchor="c", x=292, y=410)
@@ -169,9 +173,9 @@ class DispRegisterNum(Disp):
         )
         label_bg.place(x=0, y=0)
 
-        label = ttk.Label(self.frame, text="あなたの番号を入力してください", background="white")
+        label = ttk.Label(self.frame, text="相手が当てる番号を入力", background="white", font=Game.font_jpn)
         self.box_your_num = ttk.Entry(self.frame, width=30)
-        label.place(anchor=tk.CENTER, x=400, y=280)
+        label.place(anchor=tk.CENTER, x=400, y=270)
         self.box_your_num.place(anchor=tk.CENTER, x=400, y=300)
 
         button_enter = tk.Button(
@@ -223,10 +227,10 @@ class DispPlayingManual(Disp):
         label_bg.place(x=0, y=0)
 
         self.box_guess_num = ttk.Entry(
-            self.frame, font=("", 20), foreground="#3fe000", width=10, justify=tk.CENTER
+            self.frame, font=("", 15), foreground="#333f50", width=27, justify=tk.CENTER
         )
 
-        self.box_guess_num.place(x=250, y=535)
+        self.box_guess_num.place(anchor="c", x=327, y=550)
 
         self.button = tk.Button(
             self.frame,
@@ -237,7 +241,7 @@ class DispPlayingManual(Disp):
             command=self.onclick,
             state=tk.NORMAL,
         )
-        self.button.place(x=577, y=531)
+        self.button.place(x=527, y=531)
 
         self.y_interval = 20
         self.y_you_guess = 13
@@ -289,6 +293,10 @@ class DispPlayingManual(Disp):
         game_state = Game.player.get_state()
         if game_state == 2:
             if Game.player.is_my_turn():
+                label_turn = ttk.Label(
+                    self.frame, text="   YOU  ", foreground="#333f50", background="#96e9cc", width=10, font=Game.font_alp
+                )
+                label_turn.place(anchor="c", x=288, y=63)
 
                 opponent_table = Game.player.get_opponent_table()
                 if self.cnt_opponent_guess < len(opponent_table):
@@ -321,6 +329,10 @@ class DispPlayingManual(Disp):
                     self.cnt_opponent_guess += 1
                 self.button["state"] = tk.NORMAL
             else:
+                label_turn = ttk.Label(
+                    self.frame, text="OPPONENT", foreground="#333f50", background="#96e9cc", width=10, font=Game.font_alp
+                )
+                label_turn.place(anchor="c", x=288, y=63)
                 self.button["state"] = tk.DISABLED
         elif game_state == 3:
             Game.show_reslut_disp()
@@ -471,7 +483,11 @@ class DispPlayingAuto(Disp):
 
             guess_result = Game.player.post_guess_num(guess_num)
             self.canvas_you_response.create_image(
-                60, self.y_you_responce, image=self.img_response_dict[str(guess_result[0])+"hit"+str(guess_result[1])+"blow"]
+                60,
+                self.y_you_responce,
+                image=self.img_response_dict[
+                    str(guess_result[0]) + "hit" + str(guess_result[1]) + "blow"
+                ],
             )
             self.y_you_responce += self.y_interval
 
