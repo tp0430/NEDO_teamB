@@ -17,6 +17,7 @@ from player import Player
 from typing import List
 from PIL import Image, ImageTk
 
+from communication import get_empty
 from player import get_save
 
 CHOICES = [
@@ -61,6 +62,9 @@ class Game:
         )
         Game.font_eng_num = font.Font(
             Game.root, family="YU Gothic UI", size=13, weight="bold"
+        )
+        Game.font_eng_small = font.Font(
+            Game.root, family="YU Gothic UI", size=10, weight="bold"
         )
 
         Game.show_login_disp()
@@ -149,7 +153,7 @@ class DispLogin(Disp):
 
         label_player_name = ttk.Label(
             self.frame,
-            text="プレイヤー名を入力",
+            text="プレイヤー名を選択",
             foreground="#333f50",
             background="white",
             font=Game.font_jpn_bold,
@@ -165,6 +169,7 @@ class DispLogin(Disp):
                 values=players,
                 font=Game.font_eng_num,
             )
+        self.player_combo.current(0)
 
         #self.box_player_name = ttk.Entry(self.frame, width=30)
         label_player_name.place(anchor="c", x=292, y=250)
@@ -178,21 +183,42 @@ class DispLogin(Disp):
             background="white",
             font=Game.font_jpn_bold,
         )
-        self.box_room_id = ttk.Entry(self.frame, width=30)
+        self.box_room_id = ttk.Entry(self.frame, width=30, justify="center")
+        self.box_room_id.insert(0, get_empty())
         label_room_id.place(anchor="c", x=292, y=330)
         self.box_room_id.place(anchor="c", x=292, y=360)
 
         label_mode = ttk.Label(
             self.frame,
-            text="モードを選択(auto: 1 / manual: 0)",
+            text="モードを選択",
             foreground="#333f50",
             background="white",
             font=Game.font_jpn_bold,
         )
-        self.box_mode = ttk.Entry(self.frame, width=30)
+        self.radio_mode = tk.IntVar(value=0)
+        self.radio_manual = tk.Radiobutton(
+            self.frame,
+            text="MANUAL",
+            foreground="#333f50",
+            background="white",
+            font=Game.font_eng_small,
+            value=0,
+            variable=self.radio_mode
+        )
+        self.radio_auto = tk.Radiobutton(
+            self.frame,
+            text="AUTO",
+            foreground="#333f50",
+            background="white",
+            font=Game.font_eng_small,
+            value=1,
+            variable=self.radio_mode
+        )
+        self.radio_manual.place(anchor="c", x=250, y=440)
+        self.radio_auto.place(anchor="c", x=366, y=440)
+        #self.box_mode = ttk.Entry(self.frame, width=30)
         label_mode.place(anchor="c", x=292, y=410)
-        self.box_mode.place(anchor="c", x=292, y=440)
-
+        #self.box_mode.place(anchor="c", x=292, y=440)
         label_achievments = ttk.Label(
             self.frame,
             text="Achievements",
@@ -223,13 +249,12 @@ class DispLogin(Disp):
         mode: int
         try:
             room_id = int(self.box_room_id.get())
-            mode = int(self.box_mode.get())
+            mode = self.radio_mode.get()
 
             if mode != 0 and mode != 1:
                 raise ValueError
         except ValueError:
             self.box_room_id.delete(0, tk.END)
-            self.box_mode.delete(0, tk.END)
             return
 
         Game.set_player(

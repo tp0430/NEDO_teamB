@@ -5,6 +5,7 @@ import json
 
 from tkinter.constants import NO
 from typing import Tuple, List
+import numpy as np
 
 from communication import APICom
 from auto_guess import AutoGuess
@@ -44,23 +45,46 @@ class Player:
         self.mode: int = mode
         self.guess_history: List[Tuple(str, Tuple(int, int))] = [(None, None)]
         if mode:
-            self.auto_guesser = AutoGuess()
+            self.auto_guesser = AutoGuess(strength=get_save()["レート"])
         self.json_path = os.path.join("save", "save.json")
         self._saved = False
 
-    def save_result(self, winner):
+    def save_result(self, winner, lose_weight=3, weight=0.4):
         if not self._saved:
             with open(self.json_path, mode="r", encoding="utf-8") as f:
                 json_load = json.load(f)
+            print(self.guess_history)
             
             json_load["game_count"]["プレイ回数"] += 1
+            play_num = json_load["game_count"]["プレイ回数"]
+            prev_ave_num = json_load["game_count"]["平均回答回数"]
+            this_num = len(self.guess_history) - 1
 
             if winner == self._player_name:
                 json_load["game_count"]["勝利回数"] += 1
+                if prev_ave_num == 0:
+                    json_load["game_count"]["平均回答回数"] = this_num
+                else:
+                    json_load["game_count"]["平均回答回数"] = (1 - weight) * prev_ave_num + weight * this_num
             elif winner == None:
                 json_load["game_count"]["引き分け回数"] += 1
+                if prev_ave_num == 0:
+                    json_load["game_count"]["平均回答回数"] = this_num
+                else:
+                    json_load["game_count"]["平均回答回数"] = (1 - weight) * prev_ave_num + weight * this_num
             else:
                 json_load["game_count"]["敗北回数"] += 1
+                if prev_ave_num == 0:
+                    json_load["game_count"]["平均回答回数"] = this_num + lose_weight
+                else:
+                    json_load["game_count"]["平均回答回数"] = (1 - weight) * prev_ave_num + weight * (this_num + lose_weight)
+
+            json_load["game_count"]["レート"] = round(np.exp((60-json_load["game_count"]["平均回答回数"])/22.2), 2)
+            if json_load["game_count"]["レート"] > 10:
+                json_load["game_count"]["レート"] = 10
+            if json_load["game_count"]["レート"] < 1:
+                json_load["game_count"]["レート"] = 1
+
             if json_load["game_count"]["勝利回数"] ==1 and json_load["game_count"]["win_1"] == True:
                 json_load["game_count"]["win_1"] == False
                 pass #「初勝利」とか？
@@ -135,15 +159,15 @@ class Player:
         """  
         guess_result: Tuple[int, int] = None
 
-        self._api_com.post_guess(guess_number=guess_num)
-        latest_result = self._api_com.get_table()["table"][-1]
-        guess_result = (latest_result["hit"], latest_result["blow"])
+        if self._api_com.post_guess(guess_number=guess_num) == 200:
+            latest_result = self._api_com.get_table()["table"][-1]
+            guess_result = (latest_result["hit"], latest_result["blow"])
 
-        print("{} : {}".format(guess_num, guess_result))
+            print("{} : {}".format(guess_num, guess_result))
 
-        self.guess_history.append((guess_num, guess_result))
+            self.guess_history.append((guess_num, guess_result))
 
-        return guess_result
+            return guess_result
     
     def get_winner(self):
         """勝者を取得
@@ -153,7 +177,6 @@ class Player:
         """  
         return self._api_com.get_table()["winner"]
 
-
 def get_save():
     
     json_path = os.path.join("save", "save.json")
@@ -161,10 +184,12 @@ def get_save():
         os.makedirs("save")
         init_save = {
             "game_count": {
+                "レート": 1,
                 "プレイ回数": 0,
                 "勝利回数": 0,
                 "敗北回数": 0,
                 "引き分け回数": 0,
+                "平均回答回数": 0,
                 "win_1": True,
                 "lose_1": True,
                 "draw_1": True,
