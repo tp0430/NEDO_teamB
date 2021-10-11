@@ -133,9 +133,22 @@ class DispLogin(Disp):
             background="white",
             font=Game.font_jpn_bold,
         )
-        self.box_player_name = ttk.Entry(self.frame, width=30)
+
+        players = ["B", "B2"]
+        self.player_combo = ttk.Combobox(
+                self.frame,
+                width=2,
+                justify="center",
+                foreground="#333f50",
+                state="readonly",
+                values=players,
+                font=Game.font_eng_num,
+            )
+
+        #self.box_player_name = ttk.Entry(self.frame, width=30)
         label_player_name.place(anchor="c", x=292, y=250)
-        self.box_player_name.place(anchor="c", x=292, y=280)
+        #self.box_player_name.place(anchor="c", x=292, y=280)
+        self.player_combo.place(anchor="c", x=292, y=280)
 
         label_room_id = ttk.Label(
             self.frame,
@@ -199,7 +212,8 @@ class DispLogin(Disp):
             return
 
         Game.set_player(
-            room_id=room_id, player_name=self.box_player_name.get(), mode=mode,
+            #room_id=room_id, player_name=self.box_player_name.get(), mode=mode,
+            room_id=room_id, player_name=self.player_combo.get(), mode=mode
         )
         Game.player._api_com.enter_room()
         Game.show_waiting_disp()
@@ -405,6 +419,7 @@ class DispPlayingManual(Disp):
         :param なし
         :return: なし
         """
+        self.button["state"] = tk.DISABLED
         if self.is_correct_num():
             guess_num = self.box_guess_num.get()
             self.canvas_you_guess.create_text(
