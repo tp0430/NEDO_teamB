@@ -459,7 +459,7 @@ class DispPlayingManual(Disp):
                     )
 
                     self.canvas_opponent_guess.create_text(
-                        60,
+                        50,
                         self.y_opponent_guess,
                         text=latest_opponent_guess,
                         fill="#ffffff",
@@ -467,7 +467,7 @@ class DispPlayingManual(Disp):
                     )
                     self.y_opponent_guess += self.y_interval
                     self.canvas_opponent_response.create_image(
-                        60,
+                        50,
                         self.y_opponent_response,
                         image=self.img_response_dict[
                             str(latest_opponent_res[0])
@@ -507,7 +507,7 @@ class DispPlayingManual(Disp):
             for i in range(5):
                 guess_num += self.combos[i].get()
             self.canvas_you_guess.create_text(
-                60,
+                50,
                 self.y_you_guess,
                 text=guess_num,
                 fill="#ffffff",
@@ -517,7 +517,7 @@ class DispPlayingManual(Disp):
 
             guess_result = Game.player.post_guess_num(guess_num=guess_num)
             self.canvas_you_response.create_image(
-                60,
+                50,
                 self.y_you_response,
                 image=self.img_response_dict[
                     str(guess_result[0]) + "hit" + str(guess_result[1]) + "blow"
