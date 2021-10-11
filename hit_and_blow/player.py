@@ -1,5 +1,8 @@
 import random
 import time
+import os
+import json
+
 from tkinter.constants import NO
 from typing import Tuple, List
 
@@ -42,6 +45,45 @@ class Player:
         self.guess_history: List[Tuple(str, Tuple(int, int))] = [(None, None)]
         if mode:
             self.auto_guesser = AutoGuess()
+        self.json_path = os.path.join("save", "save.json")
+        self._saved = False
+
+    def save_result(self, winner):
+        if not self._saved:
+            with open(self.json_path, mode="r", encoding="utf-8") as f:
+                json_load = json.load(f)
+            
+            json_load["game_count"]["プレイ回数"] += 1
+
+            if winner == self._player_name:
+                json_load["game_count"]["勝利回数"] += 1
+            elif winner == None:
+                json_load["game_count"]["引き分け回数"] += 1
+            else:
+                json_load["game_count"]["敗北回数"] += 1
+            if json_load["game_count"]["勝利回数"] ==1 and json_load["game_count"]["win_1"] == True:
+                json_load["game_count"]["win_1"] == False
+                pass #「初勝利」とか？
+            elif json_load["game_count"]["敗北回数"] ==1 and json_load["game_count"]["lose_1"] == True:
+                json_load["game_count"]["lose_1"] == False
+                pass #「初敗北」とか？
+            elif json_load["game_count"]["引き分け回数"] ==1 and json_load["game_count"]["draw_1"] == True:
+                json_load["game_count"]["draw_1"] == False
+                pass #「初引き分け」とか？
+            elif json_load["game_count"]["勝利回数"] ==10 and json_load["game_count"]["win_10"] == True:
+                json_load["game_count"]["win_10"] == False
+                pass #「祝10勝」とか？
+            elif json_load["game_count"]["敗北回数"] ==10 and json_load["game_count"]["lose_10"] == True:
+                json_load["game_count"]["lose_10"] == False
+                pass #「不屈の精神」とか？
+            elif json_load["game_count"]["引き分け回数"] ==10 and json_load["game_count"]["draw_10"] == True:
+                json_load["game_count"]["draw_10"] == False
+                pass #「泥試合」とか？
+            with open(self.json_path, mode="w", encoding="utf-8") as f:
+                json.dump(json_load, f, ensure_ascii=False, indent=2)
+                
+            self._saved = True
+
 
     def is_my_turn(self) -> bool:
         """自分のターンかどうかを返す
@@ -110,4 +152,30 @@ class Player:
         :return: 勝者のplayer_name
         """  
         return self._api_com.get_table()["winner"]
+
+
+def get_save():
+    
+    json_path = os.path.join("save", "save.json")
+    if not os.path.exists("save"):
+        os.makedirs("save")
+        init_save = {
+            "game_count": {
+                "プレイ回数": 0,
+                "勝利回数": 0,
+                "敗北回数": 0,
+                "引き分け回数": 0,
+                "win_1": True,
+                "lose_1": True,
+                "draw_1": True,
+                "win_10": True,
+                "lose_10": True,
+                "draw_10": True,
+            }
+        }
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(init_save, f, ensure_ascii=False)
+    with open(json_path, "r", encoding="utf-8") as f:
+        json_load = json.load(f)
+    return json_load["game_count"]
 
