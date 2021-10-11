@@ -3,15 +3,17 @@ from typing import List, Tuple
 
 class AutoGuess:
     """自動推測クラス
+    :param strenth int: 自動推測の強さ, 最大10, 最小1
     基本的にguess(guesss_num_prev, guess_result_prev)を呼び出すだけ
     :self._possible_answers List[str] : 答えとなりうる数字のリスト
     :self._guess_history : 過去に推測した数字のリスト
     :self._guess_result_history : 過去に推測した数字の結果のリスト
     :self._cnt int : 推測した回数 
     """
-    def __init__(self) -> None:
+    def __init__(self, strength : int = 10) -> None:
         self._possible_answers: List[str] = self._make_all_number_list()
-        self._cnt: int = 0
+        self.cnt: int = 0
+        self._strength = strength
 
     def _make_all_number_list(self) -> List[str]:
     
@@ -97,8 +99,70 @@ class AutoGuess:
         :return str: 次に推測すべき数字
         """
 
-        self._cnt += 1
+        #最初の推測ではnarrow_guess_num_list()は呼ぶようにする。
+        #最初50万通りあるので、弱い設定でもこれはへらしておきたい。
 
-        self._narrow_guess_num_list(guess_num= guess_num_prev, guess_result= guess_result_prev)
+        if (self.cnt == 0) or (random.uniform(0, 10) <= self._strength):
+            self._narrow_guess_num_list(guess_num= guess_num_prev, guess_result= guess_result_prev)
 
+        self.cnt += 1
         return self._select_guess_num()
+
+
+def test_autoguess(repetition : int, strenth : int = 10):
+
+    import time
+
+    def get_random_num():
+        ret = ""
+        while True:
+            digit = hex(random.randint(0, 15))[2:]
+            if digit in ret:
+                continue
+            else:
+                ret += digit
+            if len(ret) == 5:
+                break
+        return ret
+
+    def hit_and_blow(guess: str, ans: str) -> Tuple[int, int]:
+        hit = 0
+        blow = 0
+        for i in range(len(guess)):
+            if guess[i] == ans[i]:
+                hit += 1
+        blow = len(set(guess) & set(ans)) - hit
+
+        return (hit, blow)
+
+    repetition_result = {}
+
+    time_start = time.time()
+
+    
+    for i in range(repetition):
+        auto_guess = AutoGuess(strenth= strenth)
+        answer_num = get_random_num()
+        guess_num = None
+        guess_result = None
+
+        while True:
+            guess_num = auto_guess.guess(guess_num_prev= guess_num, guess_result_prev= guess_result)
+            guess_result = hit_and_blow(guess= guess_num, ans= answer_num)
+
+            if guess_result[0] == 5:
+                break
+        repetition_result[auto_guess.cnt] = repetition_result.get(auto_guess.cnt, 0) + 1
+    
+    elapsed_time = time.time() - time_start
+    
+    # result = sorted(repetition_result.keys())
+    
+    print("finish {} times process, in {} sec".format(repetition, elapsed_time))
+    # for item in result:
+    #     print(item)
+    print(repetition_result)
+
+if __name__ == "__main__":
+    test_autoguess(10, 8)
+

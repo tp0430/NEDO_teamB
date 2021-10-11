@@ -10,8 +10,9 @@ import glob
 
 import tkinter as tk
 from tkinter import font
+import tkinter
 import tkinter.ttk as ttk
-from tkinter.constants import N, X, Y
+from tkinter.constants import N, NO, X, Y
 from player import Player
 from typing import List
 from PIL import Image, ImageTk
@@ -25,6 +26,7 @@ class Game:
 
     @classmethod
     def init(cls) -> None:
+        Game.player = None
         Game.root = tk.Tk()
         Game.root.geometry("800x600")
         Game.root.grid_rowconfigure(0, weight=1)
@@ -293,7 +295,7 @@ class DispPlayingManual(Disp):
 
         self.y_interval = 20
         self.y_you_guess = 13
-        self.y_you_responce = 13
+        self.y_you_response = 13
         self.y_opponent_guess = 13
         self.y_opponent_response = 13
         self.canvas_you_guess = tk.Canvas(
@@ -417,12 +419,12 @@ class DispPlayingManual(Disp):
             guess_result = Game.player.post_guess_num(guess_num=guess_num)
             self.canvas_you_response.create_image(
                 60,
-                self.y_you_responce,
+                self.y_you_response,
                 image=self.img_response_dict[
                     str(guess_result[0]) + "hit" + str(guess_result[1]) + "blow"
                 ],
             )
-            self.y_you_responce += self.y_interval
+            self.y_you_response += self.y_interval
 
         else:
             print("ERROR : unexpected number")
@@ -452,7 +454,7 @@ class DispPlayingAuto(Disp):
 
         self.y_interval = 20
         self.y_you_guess = 13
-        self.y_you_responce = 13
+        self.y_you_response = 13
         self.y_opponent_guess = 13
         self.y_opponent_response = 13
         self.canvas_you_guess = tk.Canvas(
@@ -514,9 +516,10 @@ class DispPlayingAuto(Disp):
                     font=("", 15, "bold"),
                 )
                 self.y_opponent_guess += self.y_interval
+
                 self.canvas_opponent_response.create_image(
                     60,
-                    self.y_you_responce,
+                    self.y_opponent_response,
                     image=self.img_response_dict[
                         str(latest_opponent_res[0])
                         + "hit"
@@ -524,7 +527,6 @@ class DispPlayingAuto(Disp):
                         + "blow"
                     ],
                 )
-
                 self.y_opponent_response += self.y_interval
 
                 self.cnt_opponent_guess += 1
@@ -542,12 +544,12 @@ class DispPlayingAuto(Disp):
             guess_result = Game.player.post_guess_num(guess_num)
             self.canvas_you_response.create_image(
                 60,
-                self.y_you_responce,
+                self.y_you_response,
                 image=self.img_response_dict[
                     str(guess_result[0]) + "hit" + str(guess_result[1]) + "blow"
                 ],
             )
-            self.y_you_responce += self.y_interval
+            self.y_you_response += self.y_interval
 
         elif game_state == 3:
             Game.show_reslut_disp()
@@ -559,32 +561,38 @@ class DispResult(Disp):
     def __init__(self) -> None:
         super().__init__()
 
-        self.img_victory = ImageTk.PhotoImage(
-            Image.open(os.path.join("img", "result", "VICTORY.png"))
-        )
-        self.img_defeat = ImageTk.PhotoImage(
-            Image.open(os.path.join("img", "result", "DEFEAT.png"))
-        )
-        self.img_draw = ImageTk.PhotoImage(
-            Image.open(os.path.join("img", "result", "DRAW.png"))
-        )
-
         winner = Game.player.get_winner()
         Game.player.save_result(winner)
         if winner == Game.player._player_name:
-            result = "VICTORY"
+            self.bg_image = tk.PhotoImage(file= os.path.join("img", "result", "VICTORY.png"))
         elif winner == None:
-            result = "DRAW"
+            self.bg_image = tk.PhotoImage(file= os.path.join("img", "result", "DRAW.png"))
         else:
-            result = "DEFEAT"
+            self.bg_image = tk.PhotoImage(file= os.path.join("img", "result", "DEFEAT.png"))
 
-        self.img_result = ImageTk.PhotoImage(
-            Image.open(os.path.join("img", "result", result + ".png"))
-        )
         label_result = tk.Label(
-            master=self.frame, image=self.img_result, width=800, height=600
+            master=self.frame, image=self.bg_image, width=800, height=600
         )
-        label_result.place(x=0, y=0)
+        label_result.place(x= 0, y= 0)
+        self.button = tk.Button(
+            self.frame,
+            width=15,
+            height=2,
+            background= "#20c080",
+            text= "FINISH GAME", 
+            font= ("", 20, "bold"), 
+            foreground= "#fff", 
+            command=self.onclick,
+            anchor= tkinter.CENTER
+        )
+        self.button.place(x= 250, y= 400)
+    
+    def onclick(self):
+        Game.root.destroy()
+
+
+
+
 
 
 def disp_test():
