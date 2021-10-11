@@ -42,7 +42,7 @@ class Game:
             Game.root, family="YU Gothic UI", size=15, weight="bold"
         )
 
-        Game.show_playing_manual_disp()
+        Game.show_login_disp()
 
     @classmethod
     def set_player(cls, room_id: int, player_name: str, mode: int):
@@ -289,7 +289,7 @@ class DispPlayingManual(Disp):
             height=33,
             image=self.send_image,
             command=self.onclick,
-            state=tk.NORMAL,
+            state=tk.DISABLED,
         )
         self.button.place(x=527, y=531)
 
@@ -347,11 +347,14 @@ class DispPlayingManual(Disp):
             height= 300
         )
         ybar_opponent_guess.config(command= self.canvas_opponent_guess.yview)
-        self.canvas_opponent_guess()
-
+        self.canvas_opponent_guess.config(yscrollcommand= ybar_opponent_guess.set)
 
         self.canvas_opponent_response = tk.Canvas(
-            self.frame, width=120, height=300, borderwidth=0, bg="#009e9a"
+            self.frame, 
+            width=120, height=300, 
+            borderwidth=0, 
+            bg="#009e9a", 
+            scrollregion= (0, 0, 800, 800)
         )
         self.canvas_opponent_response.place(anchor=tk.CENTER, x=645, y=335)
         ybar_opponent_response = tk.Scrollbar(self.frame, orient= tk.VERTICAL)
@@ -360,7 +363,8 @@ class DispPlayingManual(Disp):
             x= 703, y= 335, 
             height= 300
         )
-        ybar_opponent_response.config(command= self.canvas_opponent_response)
+        ybar_opponent_response.config(command= self.canvas_opponent_response.yview)
+        self.canvas_opponent_response.config(yscrollcommand= ybar_opponent_response.set)
 
         # ここで、15枚、レスポンスに応じた画像を用意して、辞書形式にまとめておく
         photo_dir = os.path.join("img", "response", "")
@@ -373,8 +377,8 @@ class DispPlayingManual(Disp):
         self.cnt_opponent_guess = 0
 
         # check_interval ms 事にゲームの状態を確認
-        # self.check_interval = 1000
-        # self.frame.after(self.check_interval, self.update_game_state)
+        self.check_interval = 1000
+        self.frame.after(self.check_interval, self.update_game_state)
 
     def update_game_state(self):
         """ゲームの状態を更新
@@ -461,15 +465,15 @@ class DispPlayingManual(Disp):
             )
             self.y_you_guess += self.y_interval
 
-            # guess_result = Game.player.post_guess_num(guess_num=guess_num)
-            # self.canvas_you_response.create_image(
-            #     60,
-            #     self.y_you_response,
-            #     image=self.img_response_dict[
-            #         str(guess_result[0]) + "hit" + str(guess_result[1]) + "blow"
-            #     ],
-            # )
-            # self.y_you_response += self.y_interval
+            guess_result = Game.player.post_guess_num(guess_num=guess_num)
+            self.canvas_you_response.create_image(
+                60,
+                self.y_you_response,
+                image=self.img_response_dict[
+                    str(guess_result[0]) + "hit" + str(guess_result[1]) + "blow"
+                ],
+            )
+            self.y_you_response += self.y_interval
 
         else:
             print("ERROR : unexpected number")
@@ -502,24 +506,61 @@ class DispPlayingAuto(Disp):
         self.y_you_response = 13
         self.y_opponent_guess = 13
         self.y_opponent_response = 13
+
         self.canvas_you_guess = tk.Canvas(
             self.frame, width=120, height=300, borderwidth=0, bg="#20c080"
         )
         self.canvas_you_guess.place(anchor=tk.CENTER, x=162, y=335)
+        ybar_you_guess = tk.Scrollbar(self.frame, orient= tk.VERTICAL)
+        ybar_you_guess.place(
+            anchor= tk.E, 
+            x= 220, y=335, 
+            height= 300)
+        ybar_you_guess.config(command= self.canvas_you_guess.yview)
+        self.canvas_you_guess.config(yscrollcommand= ybar_you_guess.set)
+
+
         self.canvas_you_response = tk.Canvas(
             self.frame, width=120, height=300, borderwidth=0, bg="#20c080"
         )
         self.canvas_you_response.place(anchor=tk.CENTER, x=315, y=335)
+        ybar_you_response = tk.Scrollbar(self.frame, orient= tk.VERTICAL)
+        ybar_you_response.place(
+            anchor= tk.E, 
+            x= 373, y= 335,
+            height= 300
+        )
+        ybar_you_response.config(command= self.canvas_you_response.yview)
+        self.canvas_you_response.config(yscrollcommand= ybar_you_response.set)
+
 
         self.canvas_opponent_guess = tk.Canvas(
             self.frame, width=120, height=300, borderwidth=0, bg="#40c0a0"
         )
         self.canvas_opponent_guess.place(anchor=tk.CENTER, x=495, y=335)
+        ybar_opponent_guess = tk.Scrollbar(self.frame, orient= tk.VERTICAL)
+        ybar_opponent_guess.place(
+            anchor= tk.E, 
+            x= 553, y= 335, 
+            height= 300
+        )
+        ybar_opponent_guess.config(command= self.canvas_opponent_guess.yview)
+        self.canvas_opponent_guess.config(yscrollcommand= ybar_opponent_guess.set)
+
 
         self.canvas_opponent_response = tk.Canvas(
             self.frame, width=120, height=300, borderwidth=0, bg="#40c0a0"
         )
         self.canvas_opponent_response.place(anchor=tk.CENTER, x=645, y=335)
+        ybar_opponent_response = tk.Scrollbar(self.frame, orient= tk.VERTICAL)
+        ybar_opponent_response.place(
+            anchor= tk.E, 
+            x= 703, y= 335, 
+            height= 300
+        )
+        ybar_opponent_response.config(command= self.canvas_opponent_response.yview)
+        self.canvas_opponent_response.config(yscrollcommand= ybar_opponent_response.set)
+
 
         # ここで、15枚、レスポンスに応じた画像を用意して、辞書形式にまとめておく
         photo_dir = os.path.join("img", "response", "")
