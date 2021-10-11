@@ -57,33 +57,35 @@ class Player:
             
             json_load["game_count"]["プレイ回数"] += 1
             play_num = json_load["game_count"]["プレイ回数"]
-            prev_ave_num = json_load["game_count"]["平均回答回数"]
+            prev_ave_num = json_load["internal"]["平均回答回数"]
             this_num = len(self.guess_history) - 1
 
             if winner == self._player_name:
                 json_load["game_count"]["勝利回数"] += 1
                 if prev_ave_num == 0:
-                    json_load["game_count"]["平均回答回数"] = this_num
+                    json_load["internal"]["平均回答回数"] = this_num
                 else:
-                    json_load["game_count"]["平均回答回数"] = (1 - weight) * prev_ave_num + weight * this_num
+                    json_load["internal"]["平均回答回数"] = (1 - weight) * prev_ave_num + weight * this_num
             elif winner == None:
                 json_load["game_count"]["引き分け回数"] += 1
                 if prev_ave_num == 0:
-                    json_load["game_count"]["平均回答回数"] = this_num
+                    json_load["internal"]["平均回答回数"] = this_num
                 else:
-                    json_load["game_count"]["平均回答回数"] = (1 - weight) * prev_ave_num + weight * this_num
+                    json_load["internal"]["平均回答回数"] = (1 - weight) * prev_ave_num + weight * this_num
             else:
                 json_load["game_count"]["敗北回数"] += 1
                 if prev_ave_num == 0:
-                    json_load["game_count"]["平均回答回数"] = this_num + lose_weight
+                    json_load["internal"]["平均回答回数"] = this_num + lose_weight
                 else:
-                    json_load["game_count"]["平均回答回数"] = (1 - weight) * prev_ave_num + weight * (this_num + lose_weight)
+                    json_load["internal"]["平均回答回数"] = (1 - weight) * prev_ave_num + weight * (this_num + lose_weight)
 
-            json_load["game_count"]["レート"] = round(np.exp((60-json_load["game_count"]["平均回答回数"])/22.2), 2)
+            json_load["game_count"]["レート"] = round(np.exp((60-json_load["internal"]["平均回答回数"])/22.2), 2)
             if json_load["game_count"]["レート"] > 10:
                 json_load["game_count"]["レート"] = 10
             if json_load["game_count"]["レート"] < 1:
                 json_load["game_count"]["レート"] = 1
+
+            json_load["internal"]["平均回答回数"] = round(json_load["internal"]["平均回答回数"], 2)
 
             if json_load["game_count"]["勝利回数"] ==1 and json_load["game_count"]["win_1"] == True:
                 json_load["game_count"]["win_1"] == False
@@ -196,6 +198,9 @@ def get_save():
                 "win_10": True,
                 "lose_10": True,
                 "draw_10": True,
+            },
+            "internal": {
+                "平均回答回数": 0
             }
         }
         with open(json_path, "w", encoding="utf-8") as f:
