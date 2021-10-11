@@ -16,6 +16,8 @@ from player import Player
 from typing import List
 from PIL import Image, ImageTk
 
+from player import get_save
+
 
 class Game:
     player: Player = None
@@ -163,15 +165,16 @@ class DispLogin(Disp):
             font=Game.font_eng,
         )
         label_achievments.place(anchor="c", x=573, y=250)
-        achievements = {"テスト": 2, "hoge": 4}
+        achievements = get_save()
         for i, k in enumerate(achievements.items()):
-            label_content = ttk.Label(
-                self.frame,
-                text=k[0] + ":" + str(k[1]),
-                background="white",
-                font=Game.font_jpn,
-            )
-            label_content.place(anchor="c", x=573, y=290 + 30 * i)
+            if not isinstance(k[1], bool):
+                label_content = ttk.Label(
+                    self.frame,
+                    text=k[0] + ":" + str(k[1]),
+                    background="white",
+                    font=Game.font_jpn,
+                )
+                label_content.place(anchor="c", x=573, y=290 + 30 * i)
 
     def onclick(self):
         """ログイン画面でボタンを押された時の処理
@@ -567,6 +570,7 @@ class DispResult(Disp):
         )
 
         winner = Game.player.get_winner()
+        Game.player.save_result(winner)
         if winner == Game.player._player_name:
             result = "VICTORY"
         elif winner == None:
