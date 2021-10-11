@@ -129,7 +129,7 @@ class APICom:
         print("post hidden number: status code : {}".format(result.status_code))
         return result.json()
 
-    def post_guess(self, guess_number: str) -> dict:
+    def post_guess(self, guess_number: str) -> int:
         """推測した数字を登録する
         :param str guess_number: 推測した数値
         :rtype:dict
@@ -150,7 +150,7 @@ class APICom:
         )
 
         # print(result.status_code)
-        return result.json()
+        return result.status_code
 
     def get_game_state(self) -> int:
         """ゲームの進行状態を取得
@@ -163,3 +163,15 @@ class APICom:
             return result.json()["state"]
         else:
             return 0
+
+def get_empty(start=8000):
+    URL = "https://damp-earth-70561.herokuapp.com"
+    url_get_all_rooms = URL + "/rooms/"
+    session = requests.Session()
+    result = session.get(url_get_all_rooms)
+    rooms = [i["id"] for i in result.json()]
+    num = start
+    while True:
+        num += 1
+        if num not in rooms:
+            return num
