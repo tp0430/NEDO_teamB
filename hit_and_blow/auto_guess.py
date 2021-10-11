@@ -10,7 +10,7 @@ class AutoGuess:
     :self._guess_result_history : 過去に推測した数字の結果のリスト
     :self._cnt int : 推測した回数 
     """
-    def __init__(self, strength : int = 10) -> None:
+    def __init__(self, strength : float = 10) -> None:
         self._possible_answers: List[str] = self._make_all_number_list()
         self.cnt: int = 0
         self._strength = strength
