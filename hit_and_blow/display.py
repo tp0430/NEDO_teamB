@@ -12,13 +12,31 @@ import tkinter as tk
 from tkinter import font
 import tkinter
 import tkinter.ttk as ttk
-from tkinter.constants import N, NO, X, Y
+from tkinter.constants import ANCHOR, N, NO, X, Y
 from player import Player
 from typing import List
 from PIL import Image, ImageTk
 
 from player import get_save
 
+CHOICES = [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+        ]
 
 class Game:
     player: Player = None
@@ -40,6 +58,9 @@ class Game:
         )
         Game.font_eng = font.Font(
             Game.root, family="YU Gothic UI", size=15, weight="bold"
+        )
+        Game.font_eng_num = font.Font(
+            Game.root, family="YU Gothic UI", size=13, weight="bold"
         )
 
         Game.show_login_disp()
@@ -224,9 +245,22 @@ class DispRegisterNum(Disp):
             background="white",
             font=Game.font_jpn_bold,
         )
-        self.box_your_num = ttk.Entry(self.frame, width=30)
+
+        self.combos = []
+        for i in range(5):
+            self.combos.append(ttk.Combobox(
+                self.frame,
+                width=2,
+                justify="center",
+                foreground="#333f50",
+                state="readonly",
+                values=CHOICES,
+                font=Game.font_eng_num,
+            ))
+            self.combos[i].place(anchor="c", x=280+i*60, y=300)
+
+
         label.place(anchor=tk.CENTER, x=400, y=270)
-        self.box_your_num.place(anchor=tk.CENTER, x=400, y=300)
 
         button_enter = tk.Button(
             self.frame,
@@ -246,14 +280,18 @@ class DispRegisterNum(Disp):
         :return: なし
         """
         if self.is_correct_num():
-            Game.player._api_com.post_hidden(self.box_your_num.get())
+            hidden_num = ""
+            for i in range(5):
+                hidden_num += self.combos[i].get()
+            Game.player._api_com.post_hidden(hidden_num)
 
             if Game.player.mode:
                 Game.show_playing_auto_disp()
             else:
                 Game.show_playing_manual_disp()
         else:
-            self.box_your_num.delete(0, tk.END)
+            for i in range(5):
+                self.combos[i].delete(0, 1)
 
     def is_correct_num(self):
         """入力された数字を取得し、それが16進5桁の数字かどうか判定
@@ -261,7 +299,9 @@ class DispRegisterNum(Disp):
         :rtype: bool
         :return: 16進5桁の数字ならTrue, そうでなければFalse
         """
-        num = self.box_your_num.get()
+        num = ""
+        for i in range(5):
+            num += self.combos[i].get()
         if len(num) == 5 and len(set(num)) == 5:
             return True
         return False
@@ -276,11 +316,19 @@ class DispPlayingManual(Disp):
         )
         label_bg.place(x=0, y=0)
 
-        self.box_guess_num = ttk.Entry(
-            self.frame, font=("", 15), foreground="#333f50", width=27, justify=tk.CENTER
-        )
-
-        self.box_guess_num.place(anchor="c", x=327, y=550)
+        
+        self.combos = []
+        for i in range(5):
+            self.combos.append(ttk.Combobox(
+                self.frame,
+                width=2,
+                justify="center",
+                foreground="#333f50",
+                state="readonly",
+                values=CHOICES,
+                font=Game.font_eng_num,
+            ))
+            self.combos[i].place(anchor="c", x=170+i*69, y=550)
 
         self.button = tk.Button(
             self.frame,
@@ -289,7 +337,7 @@ class DispPlayingManual(Disp):
             height=33,
             image=self.send_image,
             command=self.onclick,
-            state=tk.NORMAL,
+            state=tk.DISABLED,
         )
         self.button.place(x=527, y=531)
 
@@ -298,24 +346,73 @@ class DispPlayingManual(Disp):
         self.y_you_response = 13
         self.y_opponent_guess = 13
         self.y_opponent_response = 13
+
         self.canvas_you_guess = tk.Canvas(
-            self.frame, width=120, height=300, borderwidth=0, bg="#2eb280"
+            self.frame, 
+            width=120, height=300, 
+            borderwidth=0, 
+            bg="#2eb280", 
+            scrollregion= (0, 0, 800, 800)
         )
         self.canvas_you_guess.place(anchor=tk.CENTER, x=162, y=335)
+        ybar_you_guess = tk.Scrollbar(self.frame, orient= tk.VERTICAL)
+        ybar_you_guess.place(
+            anchor= tk.E, 
+            x= 220, y=335, 
+            height= 300)
+        ybar_you_guess.config(command= self.canvas_you_guess.yview)
+        self.canvas_you_guess.config(yscrollcommand= ybar_you_guess.set)
+        
         self.canvas_you_response = tk.Canvas(
-            self.frame, width=120, height=300, borderwidth=0, bg="#2eb280"
+            self.frame, 
+            width=120, height=300, 
+            borderwidth=0, 
+            bg="#2eb280", 
+            scrollregion= (0, 0, 800, 800)
         )
         self.canvas_you_response.place(anchor=tk.CENTER, x=315, y=335)
+        ybar_you_response = tk.Scrollbar(self.frame, orient= tk.VERTICAL)
+        ybar_you_response.place(
+            anchor= tk.E, 
+            x= 373, y= 335,
+            height= 300
+        )
+        ybar_you_response.config(command= self.canvas_you_response.yview)
+        self.canvas_you_response.config(yscrollcommand= ybar_you_response.set)
 
         self.canvas_opponent_guess = tk.Canvas(
-            self.frame, width=120, height=300, borderwidth=0, bg="#009e9a"
+            self.frame, 
+            width=120, height=300, 
+            borderwidth=0, 
+            bg="#009e9a", 
+            scrollregion= (0, 0, 800, 800)
         )
         self.canvas_opponent_guess.place(anchor=tk.CENTER, x=495, y=335)
+        ybar_opponent_guess = tk.Scrollbar(self.frame, orient= tk.VERTICAL)
+        ybar_opponent_guess.place(
+            anchor= tk.E, 
+            x= 553, y= 335, 
+            height= 300
+        )
+        ybar_opponent_guess.config(command= self.canvas_opponent_guess.yview)
+        self.canvas_opponent_guess.config(yscrollcommand= ybar_opponent_guess.set)
 
         self.canvas_opponent_response = tk.Canvas(
-            self.frame, width=120, height=300, borderwidth=0, bg="#009e9a"
+            self.frame, 
+            width=120, height=300, 
+            borderwidth=0, 
+            bg="#009e9a", 
+            scrollregion= (0, 0, 800, 800)
         )
         self.canvas_opponent_response.place(anchor=tk.CENTER, x=645, y=335)
+        ybar_opponent_response = tk.Scrollbar(self.frame, orient= tk.VERTICAL)
+        ybar_opponent_response.place(
+            anchor= tk.E, 
+            x= 703, y= 335, 
+            height= 300
+        )
+        ybar_opponent_response.config(command= self.canvas_opponent_response.yview)
+        self.canvas_opponent_response.config(yscrollcommand= ybar_opponent_response.set)
 
         # ここで、15枚、レスポンスに応じた画像を用意して、辞書形式にまとめておく
         photo_dir = os.path.join("img", "response", "")
@@ -362,7 +459,7 @@ class DispPlayingManual(Disp):
                     )
 
                     self.canvas_opponent_guess.create_text(
-                        60,
+                        50,
                         self.y_opponent_guess,
                         text=latest_opponent_guess,
                         fill="#ffffff",
@@ -370,7 +467,7 @@ class DispPlayingManual(Disp):
                     )
                     self.y_opponent_guess += self.y_interval
                     self.canvas_opponent_response.create_image(
-                        60,
+                        50,
                         self.y_opponent_response,
                         image=self.img_response_dict[
                             str(latest_opponent_res[0])
@@ -406,9 +503,11 @@ class DispPlayingManual(Disp):
         :return: なし
         """
         if self.is_correct_num():
-            guess_num = self.box_guess_num.get()
+            guess_num = ""
+            for i in range(5):
+                guess_num += self.combos[i].get()
             self.canvas_you_guess.create_text(
-                60,
+                50,
                 self.y_you_guess,
                 text=guess_num,
                 fill="#ffffff",
@@ -418,7 +517,7 @@ class DispPlayingManual(Disp):
 
             guess_result = Game.player.post_guess_num(guess_num=guess_num)
             self.canvas_you_response.create_image(
-                60,
+                50,
                 self.y_you_response,
                 image=self.img_response_dict[
                     str(guess_result[0]) + "hit" + str(guess_result[1]) + "blow"
@@ -429,7 +528,8 @@ class DispPlayingManual(Disp):
         else:
             print("ERROR : unexpected number")
 
-        self.box_guess_num.delete(0, tk.END)
+        for i in range(5):
+            self.combos[i].delete(0, 1)
 
     def is_correct_num(self):
         """入力された数字を取得し、それが16進5桁の数字かどうか判定
@@ -437,7 +537,9 @@ class DispPlayingManual(Disp):
         :rtype: bool
         :return: 16進5桁の数字ならTrue, そうでなければFalse
         """
-        num = self.box_guess_num.get()
+        num = ""
+        for i in range(5):
+            num += self.combos[i].get()
         if len(num) == 5 and len(set(num)) == 5:
             return True
         return False
@@ -457,24 +559,61 @@ class DispPlayingAuto(Disp):
         self.y_you_response = 13
         self.y_opponent_guess = 13
         self.y_opponent_response = 13
+
         self.canvas_you_guess = tk.Canvas(
             self.frame, width=120, height=300, borderwidth=0, bg="#20c080"
         )
         self.canvas_you_guess.place(anchor=tk.CENTER, x=162, y=335)
+        ybar_you_guess = tk.Scrollbar(self.frame, orient= tk.VERTICAL)
+        ybar_you_guess.place(
+            anchor= tk.E, 
+            x= 220, y=335, 
+            height= 300)
+        ybar_you_guess.config(command= self.canvas_you_guess.yview)
+        self.canvas_you_guess.config(yscrollcommand= ybar_you_guess.set)
+
+
         self.canvas_you_response = tk.Canvas(
             self.frame, width=120, height=300, borderwidth=0, bg="#20c080"
         )
         self.canvas_you_response.place(anchor=tk.CENTER, x=315, y=335)
+        ybar_you_response = tk.Scrollbar(self.frame, orient= tk.VERTICAL)
+        ybar_you_response.place(
+            anchor= tk.E, 
+            x= 373, y= 335,
+            height= 300
+        )
+        ybar_you_response.config(command= self.canvas_you_response.yview)
+        self.canvas_you_response.config(yscrollcommand= ybar_you_response.set)
+
 
         self.canvas_opponent_guess = tk.Canvas(
             self.frame, width=120, height=300, borderwidth=0, bg="#40c0a0"
         )
         self.canvas_opponent_guess.place(anchor=tk.CENTER, x=495, y=335)
+        ybar_opponent_guess = tk.Scrollbar(self.frame, orient= tk.VERTICAL)
+        ybar_opponent_guess.place(
+            anchor= tk.E, 
+            x= 553, y= 335, 
+            height= 300
+        )
+        ybar_opponent_guess.config(command= self.canvas_opponent_guess.yview)
+        self.canvas_opponent_guess.config(yscrollcommand= ybar_opponent_guess.set)
+
 
         self.canvas_opponent_response = tk.Canvas(
             self.frame, width=120, height=300, borderwidth=0, bg="#40c0a0"
         )
         self.canvas_opponent_response.place(anchor=tk.CENTER, x=645, y=335)
+        ybar_opponent_response = tk.Scrollbar(self.frame, orient= tk.VERTICAL)
+        ybar_opponent_response.place(
+            anchor= tk.E, 
+            x= 703, y= 335, 
+            height= 300
+        )
+        ybar_opponent_response.config(command= self.canvas_opponent_response.yview)
+        self.canvas_opponent_response.config(yscrollcommand= ybar_opponent_response.set)
+
 
         # ここで、15枚、レスポンスに応じた画像を用意して、辞書形式にまとめておく
         photo_dir = os.path.join("img", "response", "")
@@ -564,35 +703,37 @@ class DispResult(Disp):
         winner = Game.player.get_winner()
         Game.player.save_result(winner)
         if winner == Game.player._player_name:
-            self.bg_image = tk.PhotoImage(file= os.path.join("img", "result", "VICTORY.png"))
+            self.bg_image = tk.PhotoImage(
+                file=os.path.join("img", "result", "VICTORY.png")
+            )
         elif winner == None:
-            self.bg_image = tk.PhotoImage(file= os.path.join("img", "result", "DRAW.png"))
+            self.bg_image = tk.PhotoImage(
+                file=os.path.join("img", "result", "DRAW.png")
+            )
         else:
-            self.bg_image = tk.PhotoImage(file= os.path.join("img", "result", "DEFEAT.png"))
+            self.bg_image = tk.PhotoImage(
+                file=os.path.join("img", "result", "DEFEAT.png")
+            )
 
         label_result = tk.Label(
             master=self.frame, image=self.bg_image, width=800, height=600
         )
-        label_result.place(x= 0, y= 0)
+        label_result.place(x=0, y=0)
         self.button = tk.Button(
             self.frame,
             width=15,
             height=2,
-            background= "#20c080",
-            text= "FINISH GAME", 
-            font= ("", 20, "bold"), 
-            foreground= "#fff", 
+            background="#20c080",
+            text="FINISH GAME",
+            font=("", 20, "bold"),
+            foreground="#fff",
             command=self.onclick,
-            anchor= tkinter.CENTER
+            anchor=tkinter.CENTER,
         )
-        self.button.place(x= 250, y= 400)
-    
+        self.button.place(x=250, y=400)
+
     def onclick(self):
         Game.root.destroy()
-
-
-
-
 
 
 def disp_test():
