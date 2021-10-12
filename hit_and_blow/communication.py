@@ -70,7 +70,7 @@ class APICom:
         )
 
         print("enter room : status code: {}".format(result.status_code))
-        return 
+        return result.json()
 
     def get_room(self) -> dict:
         """指定した対戦部屋の情報を取得する
