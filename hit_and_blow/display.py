@@ -7,6 +7,8 @@
 """
 import os
 import glob
+import threading
+import sys
 
 import tkinter as tk
 from tkinter import font
@@ -17,6 +19,7 @@ from player import Player
 from typing import List
 from PIL import Image, ImageTk
 
+from hit_and_blow_auto import Player_auto
 from communication import get_empty
 from player import get_save
 
@@ -39,6 +42,8 @@ CHOICES = [
             "f",
         ]
 
+threading_auto = None
+
 class Game:
     player: Player = None
     root: tk.Tk
@@ -46,6 +51,8 @@ class Game:
     @classmethod
     def init(cls) -> None:
         Game.player = None
+        Game.player_name = ""
+        Game.room_id = None
         Game.root = tk.Tk()
         Game.root.geometry("800x600")
         Game.root.grid_rowconfigure(0, weight=1)
@@ -214,8 +221,19 @@ class DispLogin(Disp):
             value=1,
             variable=self.radio_mode
         )
-        self.radio_manual.place(anchor="c", x=250, y=440)
-        self.radio_auto.place(anchor="c", x=366, y=440)
+        self.radio_alone = tk.Radiobutton(
+            self.frame,
+            text="ALONE",
+            foreground="#333f50",
+            background="white",
+            font=Game.font_eng_small,
+            value=2,
+            variable=self.radio_mode
+        )
+        self.radio_manual.place(anchor="c", x=192, y=440)
+        self.radio_auto.place(anchor="c", x=292, y=440)
+        self.radio_alone.place(anchor="c", x=392, y=440)
+        #self.radio_alone.place(anchor="c", x=366, y=440)
         #self.box_mode = ttk.Entry(self.frame, width=30)
         label_mode.place(anchor="c", x=292, y=410)
         #self.box_mode.place(anchor="c", x=292, y=440)
@@ -251,18 +269,30 @@ class DispLogin(Disp):
             room_id = int(self.box_room_id.get())
             mode = self.radio_mode.get()
 
-            if mode != 0 and mode != 1:
-                raise ValueError
         except ValueError:
             self.box_room_id.delete(0, tk.END)
             return
+        Game.player_name = self.player_combo.get()
 
+        if mode == 2:
+            if Game.player_name == "B2":
+                auto_name = "B"
+            else:
+                auto_name = "B2"
+            auto_player = Player_auto(strength=get_save()["レート"], room_id=room_id, player_name=auto_name)
+            global threading_auto
+            threading_auto = threading.Thread(target=auto_player.play_game)
+            threading_auto.setDaemon(True)
+            threading_auto.start()
+            mode = 0
+        
         Game.set_player(
             #room_id=room_id, player_name=self.box_player_name.get(), mode=mode,
-            room_id=room_id, player_name=self.player_combo.get(), mode=mode
+            room_id=room_id, player_name=Game.player_name, mode=mode
         )
         Game.player._api_com.enter_room()
         Game.show_waiting_disp()
+
 
 
 class DispRegisterNum(Disp):
@@ -319,15 +349,19 @@ class DispRegisterNum(Disp):
         :return: なし
         """
         if self.is_correct_num():
+
+            if Game.player.mode == 1:
+                Game.show_playing_auto_disp()
+            elif Game.player.mode == 0:
+                Game.show_playing_manual_disp()
+            
             hidden_num = ""
             for i in range(5):
                 hidden_num += self.combos[i].get()
-            Game.player._api_com.post_hidden(hidden_num)
+            print("disp", hidden_num)
+            json = Game.player._api_com.post_hidden(hidden_num)
+            print(json)
 
-            if Game.player.mode:
-                Game.show_playing_auto_disp()
-            else:
-                Game.show_playing_manual_disp()
         else:
             for i in range(5):
                 self.combos[i].delete(0, 1)
@@ -773,6 +807,9 @@ class DispResult(Disp):
         self.button.place(x=250, y=400)
 
     def onclick(self):
+        global threading_auto
+        if threading_auto != None:
+            threading_auto.join()
         Game.root.destroy()
 
 
@@ -801,6 +838,10 @@ def disp_test():
         buttons[i].place(x=int(i % 4) * 90 + 430, y=int(i / 4) * 90 + 200)
 
     root.mainloop()
+
+def on_closing():
+    sys.exit()
+
 
 
 if __name__ == "__main__":
