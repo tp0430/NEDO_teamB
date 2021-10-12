@@ -119,12 +119,12 @@ class Disp:
     def __init__(self) -> None:
         self.frame = ttk.Frame(Game.root)
         self.frame.grid(row=0, column=0, sticky="nsew", pady=0)
-        self.bg_image: tk.PhotoImage
-        self.play_image = tk.PhotoImage(file=r"img\button\PLAY.png")
-        self.start_image = tk.PhotoImage(
+        self.image_bg : tk.PhotoImage
+        self.image_button_play = tk.PhotoImage(file=r"img\button\PLAY.png")
+        self.image_button_start = tk.PhotoImage(
             file=os.path.join("img", "button", "START.png")
         )
-        self.send_image = tk.PhotoImage(file=os.path.join("img", "button", "SEND.png"))
+        self.image_button_send = tk.PhotoImage(file=os.path.join("img", "button", "SEND.png"))
 
     def show(self) -> None:
         """オブジェクトのフレームを最前面に持ってくる
@@ -138,10 +138,10 @@ class Disp:
 class DispLogin(Disp):
     def __init__(self) -> None:
         super().__init__()
-        self.bg_image = tk.PhotoImage(file=os.path.join("img", "back", "login.png"))
+        self.image_bg = tk.PhotoImage(file=os.path.join("img", "back", "login.png"))
 
         label_bg = tk.Label(
-            master=self.frame, image=self.bg_image, width=800, height=600
+            master=self.frame, image=self.image_bg, width=800, height=600
         )
         label_bg.place(x=0, y=0)
 
@@ -150,7 +150,7 @@ class DispLogin(Disp):
             highlightbackground="#ffffff",
             width=166,
             height=33,
-            image=self.play_image,
+            image=self.image_button_play,
             command=self.onclick,
         )
 
@@ -297,19 +297,16 @@ class DispLogin(Disp):
             self.button_login["state"] = tk.NORMAL
         return
 
-    def set_img(self):
-        pass
-
 
 class DispRegisterNum(Disp):
     def __init__(self) -> None:
         super().__init__()
 
-        self.bg_image = tk.PhotoImage(
+        self.image_bg = tk.PhotoImage(
             file=os.path.join("img", "back", "hidden_input.png")
         )
         label_bg = tk.Label(
-            master=self.frame, image=self.bg_image, width=800, height=600
+            master=self.frame, image=self.image_bg, width=800, height=600
         )
         label_bg.place(x=0, y=0)
 
@@ -342,7 +339,7 @@ class DispRegisterNum(Disp):
             highlightbackground="#ffffff",
             width=166,
             height=33,
-            image=self.start_image,
+            image=self.image_button_start,
             command=self.onclick,
         )
         self.button_enter.place(anchor="c", x=400, y=355)
@@ -421,7 +418,7 @@ class DispPlayingManual(Disp):
             highlightbackground="#ffffff",
             width=150,
             height=33,
-            image=self.send_image,
+            image=self.image_button_send,
             command=self.onclick,
             state=tk.DISABLED,
         )
@@ -500,7 +497,6 @@ class DispPlayingManual(Disp):
         ybar_opponent_response.config(command= self.canvas_opponent_response.yview)
         self.canvas_opponent_response.config(yscrollcommand= ybar_opponent_response.set)
 
-        # ここで、15枚、レスポンスに応じた画像を用意して、辞書形式にまとめておく
         photo_dir = os.path.join("img", "response", "")
         self.img_response_dict = {
             name[-13:-4]: ImageTk.PhotoImage(Image.open(name))

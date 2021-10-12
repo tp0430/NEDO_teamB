@@ -3,6 +3,7 @@ import random
 import time
 import os
 import json
+import threading
 
 from tkinter.constants import NO
 from typing import Tuple, List
@@ -45,6 +46,8 @@ class Player:
             self.auto_guesser = AutoGuess(strength=get_save()["レート"])
         self.json_path = os.path.join("save", "save.json")
         self._saved = False
+        self.table = None
+        self.update_interval = 0.1
 
     def save_result(self, winner, lose_weight=3, weight=0.4):
         if not self._saved:
@@ -104,7 +107,7 @@ class Player:
                 json.dump(json_load, f, ensure_ascii=False, indent=2)
                 
             self._saved = True
-
+    
 
     def is_my_turn(self) -> bool:
         """自分のターンかどうかを返す
@@ -112,7 +115,7 @@ class Player:
         :rtype: bool
         :return: 自分のターンならTrue, 相手のターンならFalse
         """
-        return (self._api_com.get_table()["state"] == 2 ) and (self._api_com.get_table()["now_player"] == self._player_name)
+        return (self.table["state"] == 2 ) and (self.table["now_player"] == self._player_name)
     
     def get_state(self) -> int:
         """ゲームの状態を取得
@@ -120,7 +123,7 @@ class Player:
         :rtype: int
         :return: 1: ゲーム未開始 , 2: 進行中 , 3: ゲーム終了
         """        
-        return self._api_com.get_table()["state"]
+        return self.table["state"]
     
     def get_opponent_table(self) -> List:
         """相手のテーブルを取得
@@ -128,7 +131,7 @@ class Player:
         :rtype: List[dict[]]
         :return: 相手のテーブル
         """   
-        return self._api_com.get_table()["opponent_table"]
+        return self.table["opponent_table"]
     
     def auto_guess(self) -> str:
         """自動推測結果を返す
@@ -137,6 +140,16 @@ class Player:
         :return: 自動推測した数字
         """   
         return self.auto_guesser.guess(self.guess_history[-1][0], self.guess_history[-1][1])
+    
+    def update_table(self) -> None:
+
+        while True:
+            self.table = self._api_com.get_table()
+            if self.table.get("state") == 3:
+                break
+            time.sleep(self.update_interval)
+        return
+
     
     def enter_room(self) -> int:
         """対戦部屋に入室
@@ -152,7 +165,11 @@ class Player:
         :rtype: int
         :return: status code
         """  
-        return self._api_com.post_hidden(hidden_number= hidden_num)
+        res = self._api_com.post_hidden(hidden_number= hidden_num)
+        self.thread = threading.Thread(target= self.update_table)
+        self.thread.setDaemon(True)
+        self.thread.start()
+        return res
 
     def post_guess_num(self, guess_num: str) -> Tuple[int, int]:
         """推測した数字をサーバに上げる
@@ -178,7 +195,7 @@ class Player:
         :rtype: str
         :return: 勝者のplayer_name
         """  
-        return self._api_com.get_table()["winner"]
+        return self.table["winner"]
 
 def get_save():
     

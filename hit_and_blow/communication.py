@@ -101,6 +101,7 @@ class APICom:
         )
 
         result = self._session.get(url_get_table)
+        logger.info("get table")
         result.raise_for_status()
         return result.json()
 
