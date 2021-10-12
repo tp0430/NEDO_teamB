@@ -53,10 +53,8 @@ class Player:
         if not self._saved:
             with open(self.json_path, mode="r", encoding="utf-8") as f:
                 json_load = json.load(f)
-            print(self.guess_history)
             
             json_load["game_count"]["プレイ回数"] += 1
-            play_num = json_load["game_count"]["プレイ回数"]
             prev_ave_num = json_load["internal"]["平均回答回数"]
             this_num = len(self.guess_history) - 1
 

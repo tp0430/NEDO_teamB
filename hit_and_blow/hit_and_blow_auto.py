@@ -10,9 +10,10 @@ MIN_ANS: int = 0
 MAX_ANS: int = 15
 REPEAT_NUM: int = 100
 PLAYER_NAME: str = "B"
-FIRST_ROOM_ID: int = 1 #上野さん、対戦時に設定してください。
+FIRST_ROOM_ID: int = 1  # 上野さん、対戦時に設定してください。
 
-class Player:
+
+class Player_auto:
     """プレイ用モジュール。
     :param bool _is_start_game: ゲームが開始できているか。
     :param bool _is_end_game: ゲームが終了しているか。
@@ -23,13 +24,16 @@ class Player:
     :param int mode: 0->マニュアルモード(デフォルト), 1->自動対戦モード
     """
 
-    def __init__(self, room_id: int, player_name: str, mode: int = 0) -> None:
+    def __init__(
+        self, room_id: int, player_name: str, mode: int = 0, strength=10
+    ) -> None:
         """コンストラクタ
         :param int room_id: ルームID
         :param str player_name: プレーヤー名
         :rtype: None
         :return: なし
         """
+        self.strength = strength
         self._is_start_game: bool = False
         self._is_end_game: bool = False
         self._room_id: int = room_id
@@ -51,6 +55,7 @@ class Player:
 
         while self._api_com.get_room()["state"] == 1:
             time.sleep(1)
+        print(self._hidden_number)
         self._api_com.post_hidden(hidden_number=self._hidden_number)
         self._is_start_game = True
         return
@@ -90,7 +95,7 @@ class Player:
         :return: なし
         """
 
-        guess_program = AutoGuess()
+        guess_program = AutoGuess(strength=self.strength)
 
         guess_num: str = None
         guess_result: Tuple[int, int] = None
@@ -137,15 +142,16 @@ class Player:
                 return result
 
 
-def main(first_room_id):
+def main(first_room_id=FIRST_ROOM_ID, repeat_num=REPEAT_NUM):
 
     results = {"win": 0, "draw": 0, "lose": 0}
-    for i in range(REPEAT_NUM):
-        player = Player(room_id=first_room_id + i, player_name=PLAYER_NAME)
+    for i in range(repeat_num):
+        player = Player_auto(room_id=first_room_id + i, player_name=PLAYER_NAME)
         results[player.play_game()] += 1
     print(results)
 
     return
+
 
 if __name__ == "__main__":
     main(FIRST_ROOM_ID)
