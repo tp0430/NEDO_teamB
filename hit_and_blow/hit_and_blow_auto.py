@@ -54,8 +54,10 @@ class Player_auto:
         _ = self._api_com.enter_room()
 
         while self._api_com.get_room()["state"] == 1:
-            time.sleep(1)
+            time.sleep(0.5)
         print(self._hidden_number)
+        #APIの処理待ち
+        time.sleep(0.5)
         self._api_com.post_hidden(hidden_number=self._hidden_number)
         self._is_start_game = True
         return
@@ -108,8 +110,8 @@ class Player_auto:
                 self._api_com.post_guess(guess_number=guess_num)
                 latest_result = self._api_com.get_table()["table"][-1]
                 guess_result = (latest_result["hit"], latest_result["blow"])
-
-            time.sleep(1)
+        
+            time.sleep(0.5)
         self._is_end_game = True
         return
 
