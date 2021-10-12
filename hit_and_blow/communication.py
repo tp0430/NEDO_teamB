@@ -10,6 +10,8 @@
 """
 import requests
 from typing import Dict, Union, List
+from logging import getLogger
+logger = getLogger("hit_and_blow").getChild("communication")
 
 
 class APICom:
@@ -48,19 +50,19 @@ class APICom:
         :return: 全ての対戦部屋のURL
         """
         url_get_all_rooms = self._URL + "/rooms/"
-
         result = self._session.get(url_get_all_rooms)
 
-        # print(result.status_code)
+        logger.debug("get rooms -> {}".format(result.status_code))
+        result.raise_for_status()
+
         return result.json()
 
-    def enter_room(self) -> dict:
+    def enter_room(self) -> int:
         """対戦部屋を作成し、指定したユーザを登録する。
         待機中の状態の対戦部屋が存在する場合は、指定したユーザを該当の対戦部屋のプレイヤーとして登録する。
         selfにルームIDを指定した場合は、該当のルームIDの対戦部屋にユーザを登録。
-
-        :rtype:dict
-        :return:
+        :rtype:int
+        :return: status code
         """
         url_enter_room = self._URL + "/rooms/"
         enter_room_json = {"player_id": self._player_id, "room_id": self._room_id}
@@ -69,8 +71,9 @@ class APICom:
             url_enter_room, headers=self._HEADERS, json=enter_room_json
         )
 
-        print("enter room : status code: {}".format(result.status_code))
-        return result.json()
+        logger.debug("enter room -> {}".format(result.status_code))
+        result.raise_for_status()
+        return result.status_code
 
     def get_room(self) -> dict:
         """指定した対戦部屋の情報を取得する
@@ -80,8 +83,7 @@ class APICom:
         url_get_room = self._URL + "/rooms/" + str(self._room_id)
 
         result = self._session.get(url_get_room)
-
-        # print(result.status_code)
+        result.raise_for_status()
         return result.json()
 
     def get_table(self) -> dict:
@@ -99,8 +101,7 @@ class APICom:
         )
 
         result = self._session.get(url_get_table)
-
-        # print(result.status_code)
+        result.raise_for_status()
         return result.json()
 
     def post_hidden(self, hidden_number: str) -> dict:
@@ -126,8 +127,9 @@ class APICom:
             url_post_hidden, headers=self._HEADERS, json=post_hidden_json
         )
 
-        print("post hidden number: status code : {}".format(result.status_code))
-        return result.json()
+        logger.debug("post hidden number: status code : {}".format(result.status_code))
+        result.raise_for_status()
+        return result.status_code
 
     def post_guess(self, guess_number: str) -> int:
         """推測した数字を登録する
@@ -149,7 +151,8 @@ class APICom:
             url_post_guess, headers=self._HEADERS, json=post_guess_json
         )
 
-        # print(result.status_code)
+        logger.debug(str(result.status_code))
+        result.raise_for_status()
         return result.status_code
 
     def get_game_state(self) -> int:
@@ -158,17 +161,16 @@ class APICom:
         """
         url_get_room = self._URL + "/rooms/" + str(self._room_id)
         result = self._session.get(url_get_room)
+        result.raise_for_status()
+        return result.json()["state"]
 
-        if result.status_code == 200:
-            return result.json()["state"]
-        else:
-            return 0
 
 def get_empty(start=8000):
     URL = "https://damp-earth-70561.herokuapp.com"
     url_get_all_rooms = URL + "/rooms/"
     session = requests.Session()
     result = session.get(url_get_all_rooms)
+    result.raise_for_status()
     rooms = [i["id"] for i in result.json()]
     num = start
     while True:

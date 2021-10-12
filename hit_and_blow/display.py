@@ -9,6 +9,7 @@ import os
 import glob
 import threading
 import sys
+from logging import Logger, getLogger, log
 
 import tkinter as tk
 from tkinter import font
@@ -22,6 +23,10 @@ from PIL import Image, ImageTk
 from hit_and_blow_auto import Player_auto
 from communication import get_empty
 from player import get_save
+
+from requests.exceptions import RequestException
+
+logger = getLogger("hit_and_blow").getChild("display")
 
 CHOICES = [
             "0",
@@ -77,16 +82,6 @@ class Game:
         Game.show_login_disp()
 
     @classmethod
-    def set_player(cls, room_id: int, player_name: str, mode: int):
-        Game.player = Player(room_id=room_id, player_name=player_name, mode=mode)
-
-        print(
-            "player info: room id:{}, name:{}, mode{}".format(
-                room_id, player_name, mode
-            )
-        )
-
-    @classmethod
     def show_login_disp(cls):
         disp = DispLogin()
         disp.show()
@@ -117,6 +112,9 @@ class Disp:
     :param frame ttk.Frame: 表示フレーム
     :func show(): フレームを最前面に持ってくる
     """
+
+    frame_width = 800
+    frame_height = 600
 
     def __init__(self) -> None:
         self.frame = ttk.Frame(Game.root)
@@ -255,13 +253,14 @@ class DispLogin(Disp):
                     font=Game.font_jpn,
                 )
                 label_content.place(anchor="c", x=573, y=290 + 30 * i)
-
     def onclick(self):
         """ログイン画面でボタンを押された時の処理
         playerオブジェクトを作り、入室後、自身の数字登録画面に移行
         :param なし
         :return: なし
         """
+
+        self.button_login["state"] = tk.DISABLED
 
         room_id: int
         mode: int
@@ -285,14 +284,21 @@ class DispLogin(Disp):
             threading_auto.setDaemon(True)
             threading_auto.start()
             mode = 0
-        
-        Game.set_player(
-            #room_id=room_id, player_name=self.box_player_name.get(), mode=mode,
-            room_id=room_id, player_name=Game.player_name, mode=mode
-        )
-        Game.player._api_com.enter_room()
-        Game.show_waiting_disp()
+        Game.player = Player(room_id= room_id, player_name= Game.player_name, mode= mode)
 
+        try:
+            Game.player._api_com.enter_room()
+            Game.show_waiting_disp()
+            return
+        except RequestException:
+            logger.debug("対戦部屋に入れませんでした")
+            self.box_room_id.delete(0, tk.END)
+            self.box_room_id.insert(0, get_empty())
+            self.button_login["state"] = tk.NORMAL
+        return
+
+    def set_img(self):
+        pass
 
 
 class DispRegisterNum(Disp):
@@ -331,7 +337,7 @@ class DispRegisterNum(Disp):
 
         label.place(anchor=tk.CENTER, x=400, y=270)
 
-        button_enter = tk.Button(
+        self.button_enter = tk.Button(
             self.frame,
             highlightbackground="#ffffff",
             width=166,
@@ -339,7 +345,7 @@ class DispRegisterNum(Disp):
             image=self.start_image,
             command=self.onclick,
         )
-        button_enter.place(anchor="c", x=400, y=355)
+        self.button_enter.place(anchor="c", x=400, y=355)
 
     def onclick(self):
         """自身の数字登録画面でEnterが押された時の処理
@@ -348,23 +354,30 @@ class DispRegisterNum(Disp):
         :param なし
         :return: なし
         """
+        self.button_enter["state"] = tk.DISABLED
         if self.is_correct_num():
 
-            if Game.player.mode == 1:
-                Game.show_playing_auto_disp()
-            elif Game.player.mode == 0:
-                Game.show_playing_manual_disp()
-            
             hidden_num = ""
             for i in range(5):
                 hidden_num += self.combos[i].get()
-            print("disp", hidden_num)
-            json = Game.player._api_com.post_hidden(hidden_num)
-            print(json)
 
+            try:
+                Game.player.post_hidden_num(hidden_num)
+
+                logger.debug("自身の数字をポストしました。")
+                print("your number : {}".format(hidden_num))
+                if Game.player.mode == 1:
+                    Game.show_playing_auto_disp()
+                elif Game.player.mode == 0:
+                    Game.show_playing_manual_disp()
+                return
+            except RequestException:
+                logger.error("数字をポストできませんでした。")
         else:
-            for i in range(5):
-                self.combos[i].delete(0, 1)
+            print("入力が適切ではありません。")
+        for i in range(5):
+            self.combos[i].delete(0, 1)
+        self.button_enter["state"] = tk.NORMAL
 
     def is_correct_num(self):
         """入力された数字を取得し、それが16進5桁の数字かどうか判定
@@ -510,62 +523,65 @@ class DispPlayingManual(Disp):
         :rtype: bool
         :return: 16進5桁の数字ならTrue, そうでなければFalse
         """
-        game_state = Game.player.get_state()
-        if game_state == 2:
-            if Game.player.is_my_turn():
-                label_turn = ttk.Label(
-                    self.frame,
-                    text="   YOU  ",
-                    foreground="#333f50",
-                    background="#96e9cc",
-                    width=10,
-                    font=Game.font_eng,
-                )
-                label_turn.place(anchor="c", x=288, y=63)
-
-                opponent_table = Game.player.get_opponent_table()
-                if self.cnt_opponent_guess < len(opponent_table):
-                    latest_opponent_guess = opponent_table[-1]["guess"]
-                    latest_opponent_res = (
-                        opponent_table[-1]["hit"],
-                        opponent_table[-1]["blow"],
+        try:
+            game_state = Game.player.get_state()
+            if game_state == 2:
+                if Game.player.is_my_turn():
+                    label_turn = ttk.Label(
+                        self.frame,
+                        text="   YOU  ",
+                        foreground="#333f50",
+                        background="#96e9cc",
+                        width=10,
+                        font=Game.font_eng,
                     )
+                    label_turn.place(anchor="c", x=288, y=63)
 
-                    self.canvas_opponent_guess.create_text(
-                        50,
-                        self.y_opponent_guess,
-                        text=latest_opponent_guess,
-                        fill="#ffffff",
-                        font=("", 15, "bold"),
-                    )
-                    self.y_opponent_guess += self.y_interval
-                    self.canvas_opponent_response.create_image(
-                        50,
-                        self.y_opponent_response,
-                        image=self.img_response_dict[
-                            str(latest_opponent_res[0])
-                            + "hit"
-                            + str(latest_opponent_res[1])
-                            + "blow"
-                        ],
-                    )
-                    self.y_opponent_response += self.y_interval
+                    opponent_table = Game.player.get_opponent_table()
+                    if self.cnt_opponent_guess < len(opponent_table):
+                        latest_opponent_guess = opponent_table[-1]["guess"]
+                        latest_opponent_res = (
+                            opponent_table[-1]["hit"],
+                            opponent_table[-1]["blow"],
+                        )
 
-                    self.cnt_opponent_guess += 1
-                self.button["state"] = tk.NORMAL
-            else:
-                label_turn = ttk.Label(
-                    self.frame,
-                    text="OPPONENT",
-                    foreground="#333f50",
-                    background="#96e9cc",
-                    width=10,
-                    font=Game.font_eng,
-                )
-                label_turn.place(anchor="c", x=288, y=63)
-                self.button["state"] = tk.DISABLED
-        elif game_state == 3:
-            Game.show_reslut_disp()
+                        self.canvas_opponent_guess.create_text(
+                            50,
+                            self.y_opponent_guess,
+                            text=latest_opponent_guess,
+                            fill="#ffffff",
+                            font=("", 15, "bold"),
+                        )
+                        self.y_opponent_guess += self.y_interval
+                        self.canvas_opponent_response.create_image(
+                            50,
+                            self.y_opponent_response,
+                            image=self.img_response_dict[
+                                str(latest_opponent_res[0])
+                                + "hit"
+                                + str(latest_opponent_res[1])
+                                + "blow"
+                            ],
+                        )
+                        self.y_opponent_response += self.y_interval
+
+                        self.cnt_opponent_guess += 1
+                    self.button["state"] = tk.NORMAL
+                else:
+                    label_turn = ttk.Label(
+                        self.frame,
+                        text="OPPONENT",
+                        foreground="#333f50",
+                        background="#96e9cc",
+                        width=10,
+                        font=Game.font_eng,
+                    )
+                    label_turn.place(anchor="c", x=288, y=63)
+                    self.button["state"] = tk.DISABLED
+            elif game_state == 3:
+                Game.show_reslut_disp()
+        except RequestException:
+            logger.error("通信に失敗しました。")
 
         self.frame.after(1000, self.update_game_state)
 
@@ -578,29 +594,36 @@ class DispPlayingManual(Disp):
         self.button["state"] = tk.DISABLED
         if self.is_correct_num():
             guess_num = ""
-            for i in range(5):
-                guess_num += self.combos[i].get()
-            self.canvas_you_guess.create_text(
-                50,
-                self.y_you_guess,
-                text=guess_num,
-                fill="#ffffff",
-                font=("", 15, "bold"),
-            )
-            self.y_you_guess += self.y_interval
+            guess_result = None
+            try:
+                for i in range(5):
+                    guess_num += self.combos[i].get()
+                guess_result = Game.player.post_guess_num(guess_num= guess_num)
+                self.canvas_you_guess.create_text(
+                    50,
+                    self.y_you_guess,
+                    text=guess_num,
+                    fill="#ffffff",
+                    font=("", 15, "bold"),
+                )
+                self.y_you_guess += self.y_interval
 
-            guess_result = Game.player.post_guess_num(guess_num=guess_num)
-            self.canvas_you_response.create_image(
-                50,
-                self.y_you_response,
-                image=self.img_response_dict[
-                    str(guess_result[0]) + "hit" + str(guess_result[1]) + "blow"
-                ],
-            )
-            self.y_you_response += self.y_interval
+                self.canvas_you_response.create_image(
+                    50,
+                    self.y_you_response,
+                    image=self.img_response_dict[
+                        str(guess_result[0]) + "hit" + str(guess_result[1]) + "blow"
+                    ],
+                )
+                self.y_you_response += self.y_interval
+            except RequestException:
+                logger.error("数字の登録に失敗しました。")
+                self.button["state"] = tk.NORMAL
+
 
         else:
-            print("ERROR : unexpected number")
+            print("入力が適切ではありません。")
+            self.button["state"] = tk.NORMAL
 
         for i in range(5):
             self.combos[i].delete(0, 1)
@@ -710,62 +733,67 @@ class DispPlayingAuto(Disp):
         :param なし
         :return: なし
         """
-        game_state = Game.player.get_state()
-        if game_state == 2 and Game.player.is_my_turn():
 
-            opponent_table = Game.player.get_opponent_table()
-            if self.cnt_opponent_guess < len(opponent_table):
-                latest_opponent_guess = opponent_table[-1]["guess"]
-                latest_opponent_res = (
-                    opponent_table[-1]["hit"],
-                    opponent_table[-1]["blow"],
-                )
+        try:
+            game_state = Game.player.get_state()
+            if game_state == 2 and Game.player.is_my_turn():
 
-                self.canvas_opponent_guess.create_text(
+                opponent_table = Game.player.get_opponent_table()
+                if self.cnt_opponent_guess < len(opponent_table):
+                    latest_opponent_guess = opponent_table[-1]["guess"]
+                    latest_opponent_res = (
+                        opponent_table[-1]["hit"],
+                        opponent_table[-1]["blow"],
+                    )
+
+                    self.canvas_opponent_guess.create_text(
+                        60,
+                        self.y_opponent_guess,
+                        text=latest_opponent_guess,
+                        fill="#ffffff",
+                        font=("", 15, "bold"),
+                    )
+                    self.y_opponent_guess += self.y_interval
+
+                    self.canvas_opponent_response.create_image(
+                        60,
+                        self.y_opponent_response,
+                        image=self.img_response_dict[
+                            str(latest_opponent_res[0])
+                            + "hit"
+                            + str(latest_opponent_res[1])
+                            + "blow"
+                        ],
+                    )
+                    self.y_opponent_response += self.y_interval
+
+                    self.cnt_opponent_guess += 1
+
+                guess_num = Game.player.auto_guess()
+                guess_result = Game.player.post_guess_num(guess_num)
+
+                self.canvas_you_guess.create_text(
                     60,
-                    self.y_opponent_guess,
-                    text=latest_opponent_guess,
+                    self.y_you_guess,
+                    text=guess_num,
                     fill="#ffffff",
                     font=("", 15, "bold"),
                 )
-                self.y_opponent_guess += self.y_interval
+                self.y_you_guess += self.y_interval
 
-                self.canvas_opponent_response.create_image(
+                self.canvas_you_response.create_image(
                     60,
-                    self.y_opponent_response,
+                    self.y_you_response,
                     image=self.img_response_dict[
-                        str(latest_opponent_res[0])
-                        + "hit"
-                        + str(latest_opponent_res[1])
-                        + "blow"
+                        str(guess_result[0]) + "hit" + str(guess_result[1]) + "blow"
                     ],
                 )
-                self.y_opponent_response += self.y_interval
+                self.y_you_response += self.y_interval
 
-                self.cnt_opponent_guess += 1
-
-            guess_num = Game.player.auto_guess()
-            self.canvas_you_guess.create_text(
-                60,
-                self.y_you_guess,
-                text=guess_num,
-                fill="#ffffff",
-                font=("", 15, "bold"),
-            )
-            self.y_you_guess += self.y_interval
-
-            guess_result = Game.player.post_guess_num(guess_num)
-            self.canvas_you_response.create_image(
-                60,
-                self.y_you_response,
-                image=self.img_response_dict[
-                    str(guess_result[0]) + "hit" + str(guess_result[1]) + "blow"
-                ],
-            )
-            self.y_you_response += self.y_interval
-
-        elif game_state == 3:
-            Game.show_reslut_disp()
+            elif game_state == 3:
+                Game.show_reslut_disp()
+        except RequestException:
+            logger.error("通信に失敗しました")
 
         self.frame.after(self.check_interval, self.update_game_state)
 

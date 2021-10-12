@@ -1,3 +1,4 @@
+from logging import getLogger
 import random
 import time
 import os
@@ -10,15 +11,11 @@ import numpy as np
 from communication import APICom
 from auto_guess import AutoGuess
 
-import tkinter as tk
-import tkinter.ttk as ttk
-
-
 ANS_LEN: int = 5
 MIN_ANS: int = 0
 MAX_ANS: int = 15
 
-
+logger = getLogger("hit_and_blow").getChild("player")
 class Player:
     """プレイ用モジュール。
     :param int _room_id: ルームID
@@ -141,15 +138,21 @@ class Player:
         """   
         return self.auto_guesser.guess(self.guess_history[-1][0], self.guess_history[-1][1])
     
-    #戻り値悩み中、boolで返すのが後々楽そうなので要編集
-    def enter_room(self) -> bool:
+    def enter_room(self) -> int:
         """対戦部屋に入室
         :param なし
-        :rtype: bool
-        :return: 部屋に入れたかどうか
+        :rtype: int
+        :return: status code
         """  
         return self._api_com.enter_room()
 
+    def post_hidden_num(self, hidden_num) -> int:
+        """自身の数字を登録
+        :param 登録する数字
+        :rtype: int
+        :return: status code
+        """  
+        return self._api_com.post_hidden(hidden_number= hidden_num)
 
     def post_guess_num(self, guess_num: str) -> Tuple[int, int]:
         """推測した数字をサーバに上げる
@@ -159,15 +162,15 @@ class Player:
         """  
         guess_result: Tuple[int, int] = None
 
-        if self._api_com.post_guess(guess_number=guess_num) == 200:
-            latest_result = self._api_com.get_table()["table"][-1]
-            guess_result = (latest_result["hit"], latest_result["blow"])
+        self._api_com.post_guess(guess_number=guess_num)
+        latest_result = self._api_com.get_table()["table"][-1]
+        guess_result = (latest_result["hit"], latest_result["blow"])
 
-            print("{} : {}".format(guess_num, guess_result))
+        print("{} : {}".format(guess_num, guess_result))
 
-            self.guess_history.append((guess_num, guess_result))
+        self.guess_history.append((guess_num, guess_result))
 
-            return guess_result
+        return guess_result
     
     def get_winner(self):
         """勝者を取得
