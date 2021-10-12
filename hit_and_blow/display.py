@@ -190,7 +190,7 @@ class DispLogin(Disp):
             background="white",
             font=Game.font_jpn_bold,
         )
-        self.box_room_id = ttk.Entry(self.frame, width=30, justify="center")
+        self.box_room_id = ttk.Entry(self.frame, width=10, justify="center")
         self.box_room_id.insert(0, get_empty())
         label_room_id.place(anchor="c", x=292, y=330)
         self.box_room_id.place(anchor="c", x=292, y=360)

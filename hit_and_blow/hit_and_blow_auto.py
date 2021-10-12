@@ -50,14 +50,14 @@ class Player_auto:
         :rtype: None
         :return: なし
         """
-
+        time.sleep(0.2)
         _ = self._api_com.enter_room()
 
         while self._api_com.get_room()["state"] == 1:
-            time.sleep(0.5)
+            time.sleep(0.2)
         print(self._hidden_number)
         #APIの処理待ち
-        time.sleep(0.5)
+        time.sleep(0.2)
         self._api_com.post_hidden(hidden_number=self._hidden_number)
         self._is_start_game = True
         return
