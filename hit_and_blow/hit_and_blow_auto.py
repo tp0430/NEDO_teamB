@@ -4,6 +4,7 @@ from typing import Tuple, List
 
 from communication import APICom
 from auto_guess import AutoGuess
+from hit_and_blow import player
 
 ANS_LEN: int = 5
 MIN_ANS: int = 0
@@ -25,8 +26,7 @@ class Player_auto:
     """
 
     def __init__(
-        self, room_id: int, player_name: str, mode: int = 0, strength=10
-    ) -> None:
+        self, room_id: int, player_name: str, strength=10) -> None:
         """コンストラクタ
         :param int room_id: ルームID
         :param str player_name: プレーヤー名
@@ -34,33 +34,12 @@ class Player_auto:
         :return: なし
         """
         self.strength = strength
-        self._is_start_game: bool = False
-        self._is_end_game: bool = False
         self._room_id: int = room_id
         self._player_name: str = player_name
         self._api_com: APICom = APICom(
             player_name=self._player_name, room_id=self._room_id
         )
         self._hidden_number = self._random_maker()
-
-    def _init_game(self) -> None:
-        """ゲーム開始の作業をひとまとめにした関数。
-        ゲーム開始が確認されたら、self._start_gameがTrueになる。
-        :param: なし
-        :rtype: None
-        :return: なし
-        """
-
-        _ = self._api_com.enter_room()
-
-        while self._api_com.get_room()["state"] == 1:
-            time.sleep(0.5)
-        print(self._hidden_number)
-        #APIの処理待ち
-        time.sleep(0.5)
-        self._api_com.post_hidden(hidden_number=self._hidden_number)
-        self._is_start_game = True
-        return
 
     def _random_maker(self) -> str:
         choices = [
@@ -136,12 +115,15 @@ class Player_auto:
         :rtype: None
         :return: なし
         """
-        self._init_game()
-        if self._is_start_game == True:
-            self._proceed_game_auto()
-            if self._is_end_game == True:
-                result: str = self._show_result()
-                return result
+
+        self._api_com.enter_room()
+        while self._api_com.get_room()["state"] == 1:
+            time.sleep(0.5)
+        self._api_com.post_hidden(hidden_number=self._hidden_number)
+        self._proceed_game_auto()
+        if self._is_end_game == True:
+            result: str = self._show_result()
+            return result
 
 
 def main(first_room_id=FIRST_ROOM_ID, repeat_num=REPEAT_NUM):
@@ -154,6 +136,11 @@ def main(first_room_id=FIRST_ROOM_ID, repeat_num=REPEAT_NUM):
 
     return
 
+def test_hundred(first_room_id = FIRST_ROOM_ID, repeat = REPEAT_NUM):
+    from player import Player
+    for i in range(repeat):
+        player = Player(room_id= first_room_id + i, player_name= PLAYER_NAME)
+        player.play_game_internal()
 
 if __name__ == "__main__":
     main(FIRST_ROOM_ID)
