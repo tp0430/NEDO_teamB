@@ -9,18 +9,17 @@ import os
 import glob
 import threading
 import sys
+import random
 from logging import Logger, getLogger, log
 
 import tkinter as tk
 from tkinter import font
 import tkinter
 import tkinter.ttk as ttk
-from tkinter.constants import ANCHOR, N, NO, X, Y
 from player import Player
 from typing import List
 from PIL import Image, ImageTk
 
-from hit_and_blow_auto import Player_auto
 from communication import get_empty
 from player import get_save
 
@@ -57,6 +56,7 @@ class Game:
     def init(cls) -> None:
         Game.player = None
         Game.player_name = ""
+        Game.opponent_hidden_num = None
         Game.room_id = None
         Game.root = tk.Tk()
         Game.root.geometry("800x600")
@@ -65,6 +65,9 @@ class Game:
         Game.font_jpn = font.Font(Game.root, family="游ゴシック", size=10)
         Game.font_jpn_bold = font.Font(
             Game.root, family="游ゴシック", size=10, weight="bold"
+        )
+        Game.font_jpn_ll = font.Font(
+            Game.root, family="游ゴシック", size=20, weight="bold"
         )
         Game.font_jpn_large = font.Font(
             Game.root, family="游ゴシック", size=13, weight="bold"
@@ -115,6 +118,7 @@ class Disp:
 
     frame_width = 800
     frame_height = 600
+    is_alone = False
 
     def __init__(self) -> None:
         self.frame = ttk.Frame(Game.root)
@@ -263,39 +267,43 @@ class DispLogin(Disp):
         self.button_login["state"] = tk.DISABLED
 
         room_id: int
-        mode: int
         try:
             room_id = int(self.box_room_id.get())
-            mode = self.radio_mode.get()
-
         except ValueError:
             self.box_room_id.delete(0, tk.END)
+            self.button_login["state"] = tk.NORMAL
             return
+        mode = self.radio_mode.get()
         Game.player_name = self.player_combo.get()
+
+        if mode == 1:
+            Game.player = Player(room_id= room_id, player_name= Game.player_name, mode= 1)
+        else:
+            Game.player = Player(room_id= room_id, player_name= Game.player_name, mode= 0)
+
+        try:
+            Game.player._api_com.enter_room()
+            Game.show_waiting_disp()
+        except RequestException:
+            logger.warning("対戦部屋に入れませんでした")
+            self.box_room_id.delete(0, tk.END)
+            self.box_room_id.insert(0, get_empty())
+            self.button_login["state"] = tk.NORMAL
+            return
 
         if mode == 2:
             if Game.player_name == "B2":
                 auto_name = "B"
             else:
                 auto_name = "B2"
-            auto_player = Player_auto(strength=get_save()["レート"], room_id=room_id, player_name=auto_name)
+            
+            Game.opponent_hidden_num = gen_random_num()
+            auto_player = Player(room_id= room_id, player_name= auto_name, mode= 2, hidden_num= Game.opponent_hidden_num)
             global threading_auto
-            threading_auto = threading.Thread(target=auto_player.play_game)
+            threading_auto = threading.Thread(target=auto_player.play_game_internal)
             threading_auto.setDaemon(True)
             threading_auto.start()
-            mode = 0
-        Game.player = Player(room_id= room_id, player_name= Game.player_name, mode= mode)
-
-        try:
-            Game.player._api_com.enter_room()
-            Game.show_waiting_disp()
-            return
-        except RequestException:
-            logger.debug("対戦部屋に入れませんでした")
-            self.box_room_id.delete(0, tk.END)
-            self.box_room_id.insert(0, get_empty())
-            self.button_login["state"] = tk.NORMAL
-        return
+            Disp.is_alone = True
 
 
 class DispRegisterNum(Disp):
@@ -365,7 +373,7 @@ class DispRegisterNum(Disp):
                 print("your number : {}".format(hidden_num))
                 if Game.player.mode == 1:
                     Game.show_playing_auto_disp()
-                elif Game.player.mode == 0:
+                elif Game.player.mode == 0 or Game.player.mode == 2:
                     Game.show_playing_manual_disp()
                 return
             except RequestException:
@@ -813,14 +821,33 @@ class DispResult(Disp):
                 file=os.path.join("img", "result", "DEFEAT.png")
             )
 
+
         label_result = tk.Label(
             master=self.frame, image=self.bg_image, width=800, height=600
         )
         label_result.place(x=0, y=0)
+
+        if Disp.is_alone:
+            # image_label_answer = tk.PhotoImage(file= os.path.join("img", "back", "white.png"))
+            # label_answer_bg = tk.Label(
+            #     master= self.frame, 
+            #     image= image_label_answer
+            # )
+            # label_answer_bg.place(x= 400, y= 400, anchor= "c")
+
+            label_answer = tk.Label(
+                master= self.frame, 
+                text= "相手の数は " + Game.opponent_hidden_num  + " でした", 
+                font= Game.font_jpn_ll, 
+                background= "#20c080", 
+                foreground= "#ffffff")
+            label_answer.place(x= 400, y= 400, anchor= "c")
+
+
         self.button = tk.Button(
             self.frame,
             width=15,
-            height=2,
+            height=1,
             background="#20c080",
             text="FINISH GAME",
             font=("", 20, "bold"),
@@ -828,7 +855,9 @@ class DispResult(Disp):
             command=self.onclick,
             anchor=tkinter.CENTER,
         )
-        self.button.place(x=250, y=400)
+        self.button.place(x=400, y=500, anchor= "c")
+
+
 
     def onclick(self):
         global threading_auto
@@ -865,6 +894,33 @@ def disp_test():
 
 def on_closing():
     sys.exit()
+
+def gen_random_num():
+    choices = [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+    ]
+    return_str = ""
+    while True:
+        new = random.choice(choices)
+        if new not in return_str:
+            return_str += new
+        if len(return_str) == 5:
+            return return_str
 
 
 

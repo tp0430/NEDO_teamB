@@ -27,8 +27,34 @@ class Player:
     :param List[Tuple(str, Tuple(int, int))] guess_history: 対戦履歴, 初期値は[None, None]
     :param auto_guesser AutoGuess: 自動推測用オブジェクト, modeが0ならNone
     """
+    def gen_random_num() -> str:
+        choices = [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+        ]
+        return_str = ""
+        while True:
+            new = random.choice(choices)
+            if new not in return_str:
+                return_str += new
+            if len(return_str) == 5:
+                return return_str
 
-    def __init__(self, room_id: int, player_name: str, mode: int = 0) -> None:
+    def __init__(self, room_id: int, player_name: str, mode: int = 0, strength= 10, hidden_num = None) -> None:
         """コンストラクタ
         :param int room_id: ルームID
         :param str player_name: プレーヤー名
@@ -36,19 +62,21 @@ class Player:
         :return: なし
         """
 
-        self._room_id: int = room_id        
         self._player_name: str = player_name
-        self._api_com: APICom = APICom(
-            player_name=self._player_name, room_id=self._room_id
-        )
-        self.mode: int = mode
+        self._api_com: APICom = APICom(player_name=self._player_name, room_id=room_id)
+        self.mode = mode
+
         self.guess_history: List[Tuple(str, Tuple(int, int))] = [(None, None)]
         if mode:
-            self.auto_guesser = AutoGuess(strength=get_save()["レート"])
+            self.auto_guesser = AutoGuess(strength= get_save()["レート"])
+
         self.json_path = os.path.join("save", "save.json")
         self._saved = False
+
         self.table = None
         self.update_interval = 0.1
+
+        self._hidden_num = hidden_num
 
     def save_result(self, winner, lose_weight=3, weight=0.4):
         if not self._saved:
@@ -170,13 +198,15 @@ class Player:
         :return: status code
         """  
         res = self._api_com.post_hidden(hidden_number= hidden_num)
-        self.thread = threading.Thread(target= self.update_table)
-        self.thread.setDaemon(True)
-        self.thread.start()
+        if self.mode != 2:
+            self.thread = threading.Thread(target= self.update_table)
+            self.thread.setDaemon(True)
+            self.thread.start()
         return res
 
     def post_guess_num(self, guess_num: str) -> Tuple[int, int]:
         """推測した数字をサーバに上げる
+        推測した数字とその結果はhistoryに内部で追加している
         :param　str: 推測した数字
         :rtype: Tuple[int, int]
         :return: 推測結果[hit, blow]
@@ -187,7 +217,6 @@ class Player:
         latest_result = self._api_com.get_table()["table"][-1]
         guess_result = (latest_result["hit"], latest_result["blow"])
 
-        print("{} : {}".format(guess_num, guess_result))
 
         self.guess_history.append((guess_num, guess_result))
 
@@ -200,11 +229,72 @@ class Player:
         :return: 勝者のplayer_name
         """  
         return self.table["winner"]
+    
+    def play_game_internal(self):
+        """内部でゲームをプレイする関数
+        :param　: なし
+        :rtype: 
+        :return: なし
+        """        
+        logger.debug("内部でプレイを開始します。")
+
+        while True:
+            try:
+                self.enter_room()
+                break
+            except RequestException:
+                logger.error("cpの入室に失敗しました。再度試します。")
+                time.sleep(0.5)
+
+        while True:
+            try:
+                state = self._api_com.get_game_state()
+                if state == 2:
+                    break
+            except RequestException:
+                logger.error("テーブルの取得に失敗しました。再度試します。")
+                pass
+            time.sleep(0.5)
+
+        if self._hidden_num == None:
+            mynum = Player.gen_random_num()
+        else:
+            mynum = self._hidden_num
+
+        while True:
+            try:
+                self.post_hidden_num(mynum)
+                logger.debug(mynum)
+                break
+            except RequestException:
+                logger.error("自身の数字の登録に失敗しました。再度ポストします。")
+                time.sleep(0.5)
+
+        while True:
+            try:
+                table = self._api_com.get_table()
+            except RequestException:
+                logger.error("テーブルの取得に失敗しました。再度試します。")
+                time.sleep(0.5)
+                continue
+
+            if table["now_player"] == self._player_name and table["state"] != 3:
+                try:
+                    self.post_guess_num(self.auto_guess())
+                except RequestException:
+                    logger.error("推測した数字の登録に失敗しました。再度試します。")
+                    time.sleep(0.5)
+            if table["state"] == 3:
+                break
+            time.sleep(0.5)
+        
+        print("my number is {}".format(mynum))
 
 def get_save():
     
     json_path = os.path.join("save", "save.json")
     if not os.path.exists("save"):
+        logger.debug("ファイルが存在しません。新しく作ります。")
         os.makedirs("save")
         init_save = {
             "game_count": {
@@ -213,7 +303,6 @@ def get_save():
                 "勝利回数": 0,
                 "敗北回数": 0,
                 "引き分け回数": 0,
-                "平均回答回数": 0,
                 "win_1": True,
                 "lose_1": True,
                 "draw_1": True,
