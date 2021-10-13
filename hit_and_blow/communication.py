@@ -10,8 +10,7 @@
 """
 import requests
 from typing import Dict, Union, List
-from logging import getLogger
-logger = getLogger("hit_and_blow").getChild("communication")
+
 
 
 class APICom:
@@ -52,7 +51,6 @@ class APICom:
         url_get_all_rooms = self._URL + "/rooms/"
         result = self._session.get(url_get_all_rooms)
 
-        logger.debug("get rooms -> {}".format(result.status_code))
         result.raise_for_status()
 
         return result.json()
@@ -71,7 +69,6 @@ class APICom:
             url_enter_room, headers=self._HEADERS, json=enter_room_json
         )
 
-        logger.debug("enter room -> {}".format(result.status_code))
         result.raise_for_status()
         return result.status_code
 
@@ -101,7 +98,6 @@ class APICom:
         )
 
         result = self._session.get(url_get_table)
-        logger.info("get table")
         result.raise_for_status()
         return result.json()
 
@@ -128,7 +124,6 @@ class APICom:
             url_post_hidden, headers=self._HEADERS, json=post_hidden_json
         )
 
-        logger.debug("post hidden number: status code : {}".format(result.status_code))
         result.raise_for_status()
         return result.status_code
 
@@ -152,7 +147,6 @@ class APICom:
             url_post_guess, headers=self._HEADERS, json=post_guess_json
         )
 
-        logger.debug(str(result.status_code))
         result.raise_for_status()
         return result.status_code
 
