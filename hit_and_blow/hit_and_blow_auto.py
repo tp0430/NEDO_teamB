@@ -1,5 +1,6 @@
 import random
 import time
+import sys
 from typing import Tuple, List
 
 from communication import APICom
@@ -8,8 +9,8 @@ from auto_guess import AutoGuess
 ANS_LEN: int = 5
 MIN_ANS: int = 0
 MAX_ANS: int = 15
-REPEAT_NUM: int = 100
-PLAYER_NAME: str = "B"
+REPEAT_NUM: int = 5
+PLAYER_NAME: str = "B2"
 FIRST_ROOM_ID: int = 1  # 上野さん、対戦時に設定してください。
 
 
@@ -51,7 +52,10 @@ class Player_auto:
         :return: なし
         """
 
-        _ = self._api_com.enter_room()
+        enter_status = self._api_com.enter_room()
+        print(enter_status)
+        while enter_status == 500:
+            enter_status = self._api_com.enter_room()
 
         while self._api_com.get_room()["state"] == 1:
             time.sleep(0.5)
@@ -156,4 +160,4 @@ def main(first_room_id=FIRST_ROOM_ID, repeat_num=REPEAT_NUM):
 
 
 if __name__ == "__main__":
-    main(FIRST_ROOM_ID)
+    main(first_room_id=int(sys.argv[1]))
