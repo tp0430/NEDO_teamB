@@ -54,7 +54,7 @@ class Player:
             if len(return_str) == 5:
                 return return_str
 
-    def __init__(self, room_id: int, player_name: str, mode: int = 0, strength= 10) -> None:
+    def __init__(self, room_id: int, player_name: str, mode: int = 0, strength= 10, hidden_num = None) -> None:
         """コンストラクタ
         :param int room_id: ルームID
         :param str player_name: プレーヤー名
@@ -69,13 +69,14 @@ class Player:
         self.guess_history: List[Tuple(str, Tuple(int, int))] = [(None, None)]
         if mode:
             self.auto_guesser = AutoGuess(strength= get_save()["レート"])
-        
 
         self.json_path = os.path.join("save", "save.json")
         self._saved = False
 
         self.table = None
         self.update_interval = 0.1
+
+        self._hidden_num = hidden_num
 
     def save_result(self, winner, lose_weight=3, weight=0.4):
         if not self._saved:
@@ -216,7 +217,6 @@ class Player:
         latest_result = self._api_com.get_table()["table"][-1]
         guess_result = (latest_result["hit"], latest_result["blow"])
 
-        print("{} : {}".format(guess_num, guess_result))
 
         self.guess_history.append((guess_num, guess_result))
 
@@ -256,7 +256,10 @@ class Player:
                 pass
             time.sleep(0.5)
 
-        mynum = Player.gen_random_num()
+        if self._hidden_num == None:
+            mynum = Player.gen_random_num()
+        else:
+            mynum = self._hidden_num
 
         while True:
             try:
@@ -275,7 +278,7 @@ class Player:
                 time.sleep(0.5)
                 continue
 
-            if table["now_player"] == self._player_name:
+            if table["now_player"] == self._player_name and table["state"] != 3:
                 try:
                     self.post_guess_num(self.auto_guess())
                 except RequestException:
@@ -300,7 +303,6 @@ def get_save():
                 "勝利回数": 0,
                 "敗北回数": 0,
                 "引き分け回数": 0,
-                "平均回答回数": 0,
                 "win_1": True,
                 "lose_1": True,
                 "draw_1": True,

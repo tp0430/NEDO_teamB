@@ -9,6 +9,7 @@ import os
 import glob
 import threading
 import sys
+import random
 from logging import Logger, getLogger, log
 
 import tkinter as tk
@@ -55,6 +56,7 @@ class Game:
     def init(cls) -> None:
         Game.player = None
         Game.player_name = ""
+        Game.opponent_hidden_num = None
         Game.room_id = None
         Game.root = tk.Tk()
         Game.root.geometry("800x600")
@@ -63,6 +65,9 @@ class Game:
         Game.font_jpn = font.Font(Game.root, family="游ゴシック", size=10)
         Game.font_jpn_bold = font.Font(
             Game.root, family="游ゴシック", size=10, weight="bold"
+        )
+        Game.font_jpn_ll = font.Font(
+            Game.root, family="游ゴシック", size=20, weight="bold"
         )
         Game.font_jpn_large = font.Font(
             Game.root, family="游ゴシック", size=13, weight="bold"
@@ -113,6 +118,7 @@ class Disp:
 
     frame_width = 800
     frame_height = 600
+    is_alone = False
 
     def __init__(self) -> None:
         self.frame = ttk.Frame(Game.root)
@@ -290,12 +296,14 @@ class DispLogin(Disp):
                 auto_name = "B"
             else:
                 auto_name = "B2"
-            auto_player = Player(room_id= room_id, player_name= auto_name, mode= 2)
+            
+            Game.opponent_hidden_num = gen_random_num()
+            auto_player = Player(room_id= room_id, player_name= auto_name, mode= 2, hidden_num= Game.opponent_hidden_num)
             global threading_auto
             threading_auto = threading.Thread(target=auto_player.play_game_internal)
             threading_auto.setDaemon(True)
             threading_auto.start()
-            mode = 0
+            Disp.is_alone = True
 
 
 class DispRegisterNum(Disp):
@@ -813,14 +821,33 @@ class DispResult(Disp):
                 file=os.path.join("img", "result", "DEFEAT.png")
             )
 
+
         label_result = tk.Label(
             master=self.frame, image=self.bg_image, width=800, height=600
         )
         label_result.place(x=0, y=0)
+
+        if Disp.is_alone:
+            # image_label_answer = tk.PhotoImage(file= os.path.join("img", "back", "white.png"))
+            # label_answer_bg = tk.Label(
+            #     master= self.frame, 
+            #     image= image_label_answer
+            # )
+            # label_answer_bg.place(x= 400, y= 400, anchor= "c")
+
+            label_answer = tk.Label(
+                master= self.frame, 
+                text= "相手の数は " + Game.opponent_hidden_num  + " でした", 
+                font= Game.font_jpn_ll, 
+                background= "#20c080", 
+                foreground= "#ffffff")
+            label_answer.place(x= 400, y= 400, anchor= "c")
+
+
         self.button = tk.Button(
             self.frame,
             width=15,
-            height=2,
+            height=1,
             background="#20c080",
             text="FINISH GAME",
             font=("", 20, "bold"),
@@ -828,7 +855,9 @@ class DispResult(Disp):
             command=self.onclick,
             anchor=tkinter.CENTER,
         )
-        self.button.place(x=250, y=400)
+        self.button.place(x=400, y=500, anchor= "c")
+
+
 
     def onclick(self):
         global threading_auto
@@ -865,6 +894,33 @@ def disp_test():
 
 def on_closing():
     sys.exit()
+
+def gen_random_num():
+    choices = [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+    ]
+    return_str = ""
+    while True:
+        new = random.choice(choices)
+        if new not in return_str:
+            return_str += new
+        if len(return_str) == 5:
+            return return_str
 
 
 
