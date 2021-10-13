@@ -267,40 +267,35 @@ class DispLogin(Disp):
             self.box_room_id.delete(0, tk.END)
             self.button_login["state"] = tk.NORMAL
             return
-    
         mode = self.radio_mode.get()
         Game.player_name = self.player_combo.get()
 
-        self._is_cp_in_room = False
-        if mode == 2 and not(self._is_cp_in_room):
-            self._is_cp_in_room = False
+        if mode == 1:
+            Game.player = Player(room_id= room_id, player_name= Game.player_name, mode= 1)
+        else:
+            Game.player = Player(room_id= room_id, player_name= Game.player_name, mode= 0)
+
+        try:
+            Game.player._api_com.enter_room()
+            Game.show_waiting_disp()
+        except RequestException:
+            logger.warning("対戦部屋に入れませんでした")
+            self.box_room_id.delete(0, tk.END)
+            self.box_room_id.insert(0, get_empty())
+            self.button_login["state"] = tk.NORMAL
+            return
+
+        if mode == 2:
             if Game.player_name == "B2":
                 auto_name = "B"
             else:
                 auto_name = "B2"
             auto_player = Player(room_id= room_id, player_name= auto_name, mode= 2)
             global threading_auto
-            try:
-                threading_auto = threading.Thread(target=auto_player.play_game_internal)
-                threading_auto.setDaemon(True)
-                threading_auto.start()
-                self._is_cp_in_room = True
-            except RequestException:
-                logger.warning("cpが部屋に入れませんでした。")
-                return
+            threading_auto = threading.Thread(target=auto_player.play_game_internal)
+            threading_auto.setDaemon(True)
+            threading_auto.start()
             mode = 0
-
-        Game.player = Player(room_id= room_id, player_name= Game.player_name, mode= mode)
-        try:
-            Game.player._api_com.enter_room()
-            Game.show_waiting_disp()
-            return
-        except RequestException:
-            logger.warning("対戦部屋に入れませんでした")
-            self.box_room_id.delete(0, tk.END)
-            self.box_room_id.insert(0, get_empty())
-            self.button_login["state"] = tk.NORMAL
-        return
 
 
 class DispRegisterNum(Disp):
@@ -370,7 +365,7 @@ class DispRegisterNum(Disp):
                 print("your number : {}".format(hidden_num))
                 if Game.player.mode == 1:
                     Game.show_playing_auto_disp()
-                elif Game.player.mode == 0:
+                elif Game.player.mode == 0 or Game.player.mode == 2:
                     Game.show_playing_manual_disp()
                 return
             except RequestException:

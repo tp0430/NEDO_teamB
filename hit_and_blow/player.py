@@ -54,7 +54,7 @@ class Player:
             if len(return_str) == 5:
                 return return_str
 
-    def __init__(self, room_id: int, player_name: str, mode: int = 0) -> None:
+    def __init__(self, room_id: int, player_name: str, mode: int = 0, strength= 10) -> None:
         """コンストラクタ
         :param int room_id: ルームID
         :param str player_name: プレーヤー名
@@ -68,7 +68,8 @@ class Player:
 
         self.guess_history: List[Tuple(str, Tuple(int, int))] = [(None, None)]
         if mode:
-            self.auto_guesser = AutoGuess(strength=get_save()["レート"])
+            self.auto_guesser = AutoGuess(strength= get_save()["レート"])
+        
 
         self.json_path = os.path.join("save", "save.json")
         self._saved = False
@@ -235,15 +236,23 @@ class Player:
         :rtype: 
         :return: なし
         """        
+        logger.debug("内部でプレイを開始します。")
 
-        self.enter_room()
+        while True:
+            try:
+                self.enter_room()
+                break
+            except RequestException:
+                logger.error("cpの入室に失敗しました。再度試します。")
+                time.sleep(0.5)
 
         while True:
             try:
                 state = self._api_com.get_game_state()
-                if state != 1:
+                if state == 2:
                     break
             except RequestException:
+                logger.error("テーブルの取得に失敗しました。再度試します。")
                 pass
             time.sleep(0.5)
 
@@ -252,6 +261,7 @@ class Player:
         while True:
             try:
                 self.post_hidden_num(mynum)
+                logger.debug(mynum)
                 break
             except RequestException:
                 logger.error("自身の数字の登録に失敗しました。再度ポストします。")
@@ -267,7 +277,7 @@ class Player:
 
             if table["now_player"] == self._player_name:
                 try:
-                    self._api_com.post_guess(self.auto_guess())
+                    self.post_guess_num(self.auto_guess())
                 except RequestException:
                     logger.error("推測した数字の登録に失敗しました。再度試します。")
                     time.sleep(0.5)
@@ -281,6 +291,7 @@ def get_save():
     
     json_path = os.path.join("save", "save.json")
     if not os.path.exists("save"):
+        logger.debug("ファイルが存在しません。新しく作ります。")
         os.makedirs("save")
         init_save = {
             "game_count": {

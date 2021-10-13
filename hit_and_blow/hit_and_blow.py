@@ -13,7 +13,7 @@ from logging import getLogger, StreamHandler, Formatter
 
 logger = getLogger("hit_and_blow")
 stream_handler = StreamHandler()
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.DEBUG)
 # ログ出力フォーマット設定
 handler_format = Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 stream_handler.setFormatter(handler_format)
