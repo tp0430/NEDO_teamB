@@ -6,8 +6,8 @@ from player import Player
 ANS_LEN: int = 5
 MIN_ANS: int = 0
 MAX_ANS: int = 15
-REPEAT_NUM: int = 100
-PLAYER_NAME: str = "B"
+REPEAT_NUM: int = 5
+PLAYER_NAME: str = "B2"
 FIRST_ROOM_ID: int = 1  # 上野さん、対戦時に設定してください。
 
 
