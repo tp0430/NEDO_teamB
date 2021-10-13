@@ -8,6 +8,7 @@ import threading
 from tkinter.constants import NO
 from typing import Tuple, List
 import numpy as np
+from requests.exceptions import RequestException
 
 from communication import APICom
 from auto_guess import AutoGuess
@@ -115,7 +116,7 @@ class Player:
         :rtype: bool
         :return: 自分のターンならTrue, 相手のターンならFalse
         """
-        return (self.table["state"] == 2 ) and (self.table["now_player"] == self._player_name)
+        return self.table["now_player"] == self._player_name
     
     def get_state(self) -> int:
         """ゲームの状態を取得
@@ -144,10 +145,13 @@ class Player:
     def update_table(self) -> None:
 
         while True:
-            self.table = self._api_com.get_table()
-            if self.table.get("state") == 3:
-                break
-            time.sleep(self.update_interval)
+            try:
+                self.table = self._api_com.get_table()
+                if self.table.get("state") == 3:
+                    break
+                time.sleep(self.update_interval)
+            except RequestException:
+                time.sleep(1)
         return
 
     
