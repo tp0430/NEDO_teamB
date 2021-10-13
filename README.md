@@ -27,5 +27,11 @@ python hit_and_blow\hit_and_blow.py
 最初のルームidを指定し、100回連続で対戦する場合
 
 ```sh
-python hit_and_blow\hit_and_blow_auto.py
+python hit_and_blow\hit_and_blow_auto.py [room_id]
+```
+
+例：1番から始める場合
+
+```sh
+python hit_and_blow\hit_and_blow_auto.py 1
 ```
