@@ -1,24 +1,23 @@
+from logging import getLogger
 import random
 import time
 import os
 import json
+import threading
 
 from tkinter.constants import NO
 from typing import Tuple, List
 import numpy as np
+from requests.exceptions import RequestException
 
 from communication import APICom
 from auto_guess import AutoGuess
-
-import tkinter as tk
-import tkinter.ttk as ttk
-
 
 ANS_LEN: int = 5
 MIN_ANS: int = 0
 MAX_ANS: int = 15
 
-
+logger = getLogger("hit_and_blow").getChild("player")
 class Player:
     """プレイ用モジュール。
     :param int _room_id: ルームID
@@ -48,6 +47,8 @@ class Player:
             self.auto_guesser = AutoGuess(strength=get_save()["レート"])
         self.json_path = os.path.join("save", "save.json")
         self._saved = False
+        self.table = None
+        self.update_interval = 0.1
 
     def save_result(self, winner, lose_weight=3, weight=0.4):
         if not self._saved:
@@ -107,7 +108,7 @@ class Player:
                 json.dump(json_load, f, ensure_ascii=False, indent=2)
                 
             self._saved = True
-
+    
 
     def is_my_turn(self) -> bool:
         """自分のターンかどうかを返す
@@ -115,7 +116,7 @@ class Player:
         :rtype: bool
         :return: 自分のターンならTrue, 相手のターンならFalse
         """
-        return (self._api_com.get_table()["state"] == 2 ) and (self._api_com.get_table()["now_player"] == self._player_name)
+        return self.table["now_player"] == self._player_name
     
     def get_state(self) -> int:
         """ゲームの状態を取得
@@ -123,7 +124,7 @@ class Player:
         :rtype: int
         :return: 1: ゲーム未開始 , 2: 進行中 , 3: ゲーム終了
         """        
-        return self._api_com.get_table()["state"]
+        return self.table["state"]
     
     def get_opponent_table(self) -> List:
         """相手のテーブルを取得
@@ -131,7 +132,7 @@ class Player:
         :rtype: List[dict[]]
         :return: 相手のテーブル
         """   
-        return self._api_com.get_table()["opponent_table"]
+        return self.table["opponent_table"]
     
     def auto_guess(self) -> str:
         """自動推測結果を返す
@@ -141,15 +142,38 @@ class Player:
         """   
         return self.auto_guesser.guess(self.guess_history[-1][0], self.guess_history[-1][1])
     
-    #戻り値悩み中、boolで返すのが後々楽そうなので要編集
-    def enter_room(self) -> bool:
+    def update_table(self) -> None:
+
+        while True:
+            try:
+                self.table = self._api_com.get_table()
+                if self.table.get("state") == 3:
+                    break
+                time.sleep(self.update_interval)
+            except RequestException:
+                time.sleep(1)
+        return
+
+    
+    def enter_room(self) -> int:
         """対戦部屋に入室
         :param なし
-        :rtype: bool
-        :return: 部屋に入れたかどうか
+        :rtype: int
+        :return: status code
         """  
         return self._api_com.enter_room()
 
+    def post_hidden_num(self, hidden_num) -> int:
+        """自身の数字を登録
+        :param 登録する数字
+        :rtype: int
+        :return: status code
+        """  
+        res = self._api_com.post_hidden(hidden_number= hidden_num)
+        self.thread = threading.Thread(target= self.update_table)
+        self.thread.setDaemon(True)
+        self.thread.start()
+        return res
 
     def post_guess_num(self, guess_num: str) -> Tuple[int, int]:
         """推測した数字をサーバに上げる
@@ -159,15 +183,15 @@ class Player:
         """  
         guess_result: Tuple[int, int] = None
 
-        if self._api_com.post_guess(guess_number=guess_num) == 200:
-            latest_result = self._api_com.get_table()["table"][-1]
-            guess_result = (latest_result["hit"], latest_result["blow"])
+        self._api_com.post_guess(guess_number=guess_num)
+        latest_result = self._api_com.get_table()["table"][-1]
+        guess_result = (latest_result["hit"], latest_result["blow"])
 
-            print("{} : {}".format(guess_num, guess_result))
+        print("{} : {}".format(guess_num, guess_result))
 
-            self.guess_history.append((guess_num, guess_result))
+        self.guess_history.append((guess_num, guess_result))
 
-            return guess_result
+        return guess_result
     
     def get_winner(self):
         """勝者を取得
@@ -175,7 +199,7 @@ class Player:
         :rtype: str
         :return: 勝者のplayer_name
         """  
-        return self._api_com.get_table()["winner"]
+        return self.table["winner"]
 
 def get_save():
     
